@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="800" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- AURA Logo - Premium Minimalist Violet Theme -->
+  
+  <!-- Rounded Black Background -->
+  <rect width="80" height="80" rx="16" fill="#0C0E12"/>
+  
+  <!-- Subtle Outer Border -->
+  <rect x="0.5" y="0.5" width="79" height="79" rx="15.5" stroke="#1F2937" stroke-width="1"/>
+
+  <!-- Glowing Aura Gradient Definitions -->
+  <defs>
+    <linearGradient id="auraGlow" x1="20" y1="20" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <filter id="softBlur" x="-10%" y="-10%" width="120%" height="120%">
+      <blur stdDeviation="1.5"/>
+    </filter>
+  </defs>
+
+  <!-- Glowing Background Aura (Subtle Soft Circle) -->
+  <circle cx="40" cy="40" r="14" fill="url(#auraGlow)" opacity="0.15" filter="url(#softBlur)"/>
+
+  <!-- Minimalist A Symbol with Aura Curve -->
+  <!-- Left leg -->
+  <path d="M28 54L38 24C39 21 41 21 42 24L52 54" stroke="url(#auraGlow)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Horizontal crossbar / aura arc -->
+  <path d="M33 44Q40 40 47 44" stroke="url(#auraGlow)" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Central calm core point -->
+  <circle cx="40" cy="33" r="2" fill="#FFFFFF"/>
+</svg>
