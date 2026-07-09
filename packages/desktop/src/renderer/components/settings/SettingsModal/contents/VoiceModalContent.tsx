@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Divider, Form, Switch } from '@arco-design/web-react';
 import AURASelect from '@/renderer/components/base/AURASelect';
@@ -17,6 +17,13 @@ const VoiceModalContent: React.FC = () => {
   const [config, setConfig] = useState<VoiceConfig>(DEFAULT_VOICE_CONFIG);
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [speakers, setSpeakers] = useState<MediaDeviceInfo[]>([]);
+  // M5: keep a ref in sync with state so updateConfigField can read the latest
+  // config without capturing a stale closure, and without using the setState
+  // updater form (which triggers side-effects twice in React Strict Mode).
+  const latestConfigRef = useRef<VoiceConfig>(DEFAULT_VOICE_CONFIG);
+  useEffect(() => {
+    latestConfigRef.current = config;
+  }, [config]);
 
   // Load stored settings on mount
   useEffect(() => {
@@ -60,18 +67,22 @@ const VoiceModalContent: React.FC = () => {
   }, [updateDevices]);
 
   // Persist updated settings to backend
-  const updateConfigField = useCallback((field: keyof VoiceConfig, value: any) => {
-    setConfig((current) => {
-      const next = { ...current, [field]: value };
-      void setClientBusinessSetting('tools.voice', next)
-        .then(() => {
-          window.dispatchEvent(new CustomEvent('aura:voice-config-changed'));
-        })
-        .catch((err) => {
-          console.error('Failed to save voice config:', err);
-        });
-      return next;
-    });
+  // M5: compute `next` from the ref (always current) and call plain setConfig so
+  // that the async save runs outside the React setState updater, preventing
+  // double-invocation under React Strict Mode.
+  const updateConfigField = useCallback((field: keyof VoiceConfig, value: unknown) => {
+    const next = { ...latestConfigRef.current, [field]: value };
+    // Update the ref immediately so rapid sequential changes compose correctly
+    // before the effect has a chance to re-sync.
+    latestConfigRef.current = next;
+    setConfig(next);
+    void setClientBusinessSetting('tools.voice', next)
+      .then(() => {
+        window.dispatchEvent(new CustomEvent('aura:voice-config-changed'));
+      })
+      .catch((err) => {
+        console.error('Failed to save voice config:', err);
+      });
   }, []);
 
   return (

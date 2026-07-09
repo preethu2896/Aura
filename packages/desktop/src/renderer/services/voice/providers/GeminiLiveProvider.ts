@@ -6,7 +6,6 @@
 
 import { GoogleGenAI, Modality } from '@google/genai';
 import type { LiveVoiceProvider, LiveVoiceSession } from '../types';
-import { LiveVoiceState, LiveVoiceErrorType } from '../types';
 
 export class GeminiLiveSession implements LiveVoiceSession {
   private conn: any = null;
@@ -40,6 +39,10 @@ export class GeminiLiveSession implements LiveVoiceSession {
       this.conn.close();
       this.conn = null;
     }
+    // C3: reset all listener arrays so that any SDK callbacks (onerror, onclose)
+    // that fire after this point during WebSocket teardown are silently discarded
+    // and cannot trigger state changes in LiveVoiceManager.
+    this.callbacks = { audio: [], text: [], stateChange: [], error: [], close: [] };
   }
 
   on(event: string, callback: any): void {
@@ -63,11 +66,26 @@ export class GeminiLiveProvider implements LiveVoiceProvider {
     voiceConfig: {
       echoCancellation?: boolean;
       noiseSuppression?: boolean;
+      // M6: device selection forwarded from VoiceConfig; reserved for Phase 2
+      microphoneId?: string;
     };
   }): Promise<LiveVoiceSession> {
     const ai = new GoogleGenAI({ apiKey: options.apiKey });
 
+    // H4: liveSession is assigned only after `await ai.live.connect(...)` resolves.
+    // Some WebSocket implementations fire `onopen` (or even `onerror`) synchronously
+    // before the promise settles.  Queue those events and replay them once the
+    // GeminiLiveSession wrapper exists.
     let liveSession: GeminiLiveSession | null = null;
+    const pendingEvents: Array<{ event: string; args: unknown[] }> = [];
+
+    const emitOrQueue = (event: string, ...args: unknown[]): void => {
+      if (liveSession) {
+        liveSession.emit(event, ...args);
+      } else {
+        pendingEvents.push({ event, args });
+      }
+    };
 
     const session = await ai.live.connect({
       model: options.model,
@@ -85,19 +103,15 @@ export class GeminiLiveProvider implements LiveVoiceProvider {
       },
       callbacks: {
         onopen: () => {
-          if (liveSession) {
-            liveSession.emit('stateChange', 'listening');
-          }
+          emitOrQueue('stateChange', 'listening');
         },
         onmessage: (message: any) => {
-          if (!liveSession) return;
-
           if (message.serverContent) {
             const turn = message.serverContent.modelTurn;
             if (turn && turn.parts) {
               for (const part of turn.parts) {
                 if (part.text) {
-                  liveSession.emit('text', part.text);
+                  emitOrQueue('text', part.text);
                 }
                 if (part.inlineData && part.inlineData.mimeType?.startsWith('audio/')) {
                   const base64Data = part.inlineData.data;
@@ -108,35 +122,37 @@ export class GeminiLiveProvider implements LiveVoiceProvider {
                     for (let i = 0; i < len; i++) {
                       bytes[i] = binaryString.charCodeAt(i);
                     }
-                    liveSession.emit('audio', bytes);
+                    emitOrQueue('audio', bytes);
                   }
                 }
               }
             }
 
             if (message.serverContent.interrupted) {
-              liveSession.emit('stateChange', 'listening');
+              emitOrQueue('stateChange', 'listening');
             } else if (message.serverContent.turnComplete) {
-              liveSession.emit('stateChange', 'listening');
+              emitOrQueue('stateChange', 'listening');
             } else if (message.serverContent.modelTurn) {
-              liveSession.emit('stateChange', 'speaking');
+              emitOrQueue('stateChange', 'speaking');
             }
           }
         },
         onerror: (err: any) => {
-          if (liveSession) {
-            liveSession.emit('error', { type: 'connection-failed', message: err?.message || 'Connection error' });
-          }
+          emitOrQueue('error', { type: 'connection-failed', message: err?.message || 'Connection error' });
         },
-        onclose: (e: any) => {
-          if (liveSession) {
-            liveSession.emit('close');
-          }
+        onclose: (_e: any) => {
+          emitOrQueue('close');
         },
       },
     });
 
     liveSession = new GeminiLiveSession(session);
+
+    // H4: replay any events that were queued before liveSession was assigned
+    for (const { event, args } of pendingEvents) {
+      liveSession.emit(event, ...args);
+    }
+
     return liveSession;
   }
 }

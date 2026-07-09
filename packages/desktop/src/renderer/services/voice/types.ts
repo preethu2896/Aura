@@ -39,6 +39,8 @@ export interface LiveVoiceProvider {
     voiceConfig: {
       echoCancellation?: boolean;
       noiseSuppression?: boolean;
+      // M6: device selection forwarded from VoiceConfig; reserved for Phase 2 audio capture
+      microphoneId?: string;
     };
   }): Promise<LiveVoiceSession>;
 }

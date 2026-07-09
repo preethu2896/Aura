@@ -24,6 +24,12 @@ export const useLiveVoice = () => {
       setErrorType(err.type);
     });
 
+    // H2: re-sync state after the subscriptions are wired up to close the window
+    // between the initial useState() snapshot and this effect running.  Any state
+    // transition that occurs in that gap will be captured here.
+    setState(LiveVoiceManager.getState());
+    setErrorType(LiveVoiceManager.getErrorType());
+
     return () => {
       unsubState();
       unsubError();
