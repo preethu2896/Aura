@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <a href="../../readme.md">English</a> | <a href="./readme_ch.md">简体中文</a> | <a href="./readme_tw.md">繁體中文</a> | <a href="./readme_jp.md">日本語</a> | <a href="./readme_ko.md">한국어</a> | <a href="./readme_es.md">Español</a> | <a href="./readme_pt.md">Português</a> | <strong>Türkçe</strong> | <a href="./readme_ru.md">Русский</a> | <a href="./readme_uk.md">Українська</a> | <a href="https://www.aionui.com" target="_blank">Resmi Web Sitesi</a>
+  <a href="../../readme.md">English</a> | <a href="./readme_ch.md">简体中文</a> | <a href="./readme_tw.md">繁體中文</a> | <a href="./readme_jp.md">日本語</a> | <a href="./readme_ko.md">한국어</a> | <a href="./readme_es.md">Español</a> | <a href="./readme_pt.md">Português</a> | <strong>Türkçe</strong> | <a href="./readme_ru.md">Русский</a> | <a href="./readme_uk.md">Українська</a> | <a href="https://github.com/iOfficeAI/AURA" target="_blank">Resmi Web Sitesi</a>
 </p>
 
 <p align="center">
@@ -56,7 +56,7 @@
 
 **AURA sadece bir sohbet istemcisi değil.** AI Agents'ın bilgisayarınızda sizinle çalıştığı bir Cowork platformudur — dosya okuma, kod yazma, web'de gezinme ve görevleri otomatikleştirme. Agent'ın yaptığı her şeyi görürsünüz ve her zaman kontrol sizdedir.
 
-|                                        | Geleneksel AI Sohbet İstemcileri | **AURA (Cowork)**                                                                                                             |
+|                                        | Geleneksel AI Sohbet İstemcileri | **AURA (Cowork)**                                                                                                               |
 | :------------------------------------- | :------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
 | AI dosyalarınızda işlem yapabilir      | Sınırlı veya Yok                 | **Evet — tam dosya erişimi ile yerleşik Agent**                                                                                 |
 | AI çok adımlı görevleri çalıştırabilir | Sınırlı                          | **Evet — onayınızla özerk**                                                                                                     |
@@ -458,7 +458,7 @@ _Birden fazla konuşma açın, görevler karışmaz, bağımsız bellek, verimli
 
 AURA **ücretsiz ve açık kaynaklı bir Çoklu AI Agent Masaüstü** uygulamasıdır. Sadece macOS'ta çalışan ve Claude'ye kilitli Claude Cowork ile karşılaştırıldığında, AURA tam model, çapraz platform geliştirilmiş versiyonudur.
 
-| Boyut           | Claude Cowork | AURA                                            |
+| Boyut           | Claude Cowork | AURA                                              |
 | :-------------- | :------------ | :------------------------------------------------ |
 | İşletim Sistemi | Sadece macOS  | macOS / Windows / Linux                           |
 | Model Desteği   | Sadece Claude | Gemini, Claude, DeepSeek, OpenAI, Ollama, ...     |

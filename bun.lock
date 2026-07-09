@@ -184,7 +184,7 @@
       "name": "@aionui/web-cli",
       "version": "1.9.26",
       "bin": {
-        "aionui-web": "./bin/aionui-web.js",
+        "aura-web": "./bin/aura-web.js",
       },
       "dependencies": {
         "@aionui/shared-scripts": "workspace:*",

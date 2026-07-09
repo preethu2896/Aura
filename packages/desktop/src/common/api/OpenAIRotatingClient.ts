@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { AuthType } from '@office-ai/auracli-core';
+import { AuthType } from '@office-ai/aioncli-core';
 import type { RotatingApiClientOptions } from './RotatingApiClient';
 import { RotatingApiClient } from './RotatingApiClient';
 

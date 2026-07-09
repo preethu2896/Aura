@@ -1206,5 +1206,16 @@
       "diagnose": "AURA 사용 중 문제가 발생했습니다. 진단을 도와주세요.\n\n[모듈] {{module}}\n[문제 설명] {{description}}\n[첨부] 입력창의 스크린샷 참조.\n\n원인을 진단하고 해결 방법을 알려주세요."
     }
   },
-  "providerIdConflict": "Provider ID가 이미 있습니다. 다시 시도하세요."
+  "providerIdConflict": "Provider ID가 이미 있습니다. 다시 시도하세요.",
+  "voiceTitle": "Voice Mode",
+  "voiceDescription": "Configure settings for Gemini Live Voice Mode.",
+  "voiceEnabled": "Enable Voice Mode",
+  "voicePreferredProvider": "Preferred Provider",
+  "voiceLiveModel": "Live Model",
+  "voiceMicrophone": "Microphone",
+  "voiceSpeaker": "Speaker",
+  "voiceNoiseSuppression": "Noise Suppression",
+  "voiceEchoCancellation": "Echo Cancellation",
+  "voiceActivityDetection": "Voice Activity Detection",
+  "voiceAutoInterrupt": "Auto Interrupt"
 }

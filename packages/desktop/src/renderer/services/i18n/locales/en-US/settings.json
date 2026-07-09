@@ -1204,5 +1204,16 @@
       "diagnose": "I ran into a problem with AURA, please help me diagnose it.\n\n[Module] {{module}}\n[Description] {{description}}\n[Attachments] see the screenshots in the input.\n\nPlease diagnose the cause and tell me how to fix it."
     }
   },
-  "providerIdConflict": "Provider ID already exists. Please try again."
+  "providerIdConflict": "Provider ID already exists. Please try again.",
+  "voiceTitle": "Voice Mode",
+  "voiceDescription": "Configure settings for Gemini Live Voice Mode.",
+  "voiceEnabled": "Enable Voice Mode",
+  "voicePreferredProvider": "Preferred Provider",
+  "voiceLiveModel": "Live Model",
+  "voiceMicrophone": "Microphone",
+  "voiceSpeaker": "Speaker",
+  "voiceNoiseSuppression": "Noise Suppression",
+  "voiceEchoCancellation": "Echo Cancellation",
+  "voiceActivityDetection": "Voice Activity Detection",
+  "voiceAutoInterrupt": "Auto Interrupt"
 }

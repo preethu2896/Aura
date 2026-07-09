@@ -46,9 +46,7 @@ describe('resolveLocalFileLinkPath', () => {
   });
 
   it('recognizes line and column suffixes without including the line in the file path', () => {
-    const reference = resolveLocalFileLinkReference(
-      'C:/Users/Administrator/AppData/Roaming/AURA/logs/app.log:1421:7'
-    );
+    const reference = resolveLocalFileLinkReference('C:/Users/Administrator/AppData/Roaming/AURA/logs/app.log:1421:7');
 
     expect(reference).toEqual({
       filePath: 'C:/Users/Administrator/AppData/Roaming/AURA/logs/app.log',

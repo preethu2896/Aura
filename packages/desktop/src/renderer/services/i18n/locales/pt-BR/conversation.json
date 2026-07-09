@@ -564,5 +564,15 @@
       }
     }
   },
-  "notFound": "Conversa não encontrada ou foi deletada"
+  "notFound": "Conversa não encontrada ou foi deletada",
+  "voice": {
+    "start": "Start Voice Mode",
+    "stop": "Stop Voice Mode",
+    "connecting": "Connecting...",
+    "listening": "Listening...",
+    "thinking": "Thinking...",
+    "speaking": "AURA is speaking...",
+    "error": "Voice Mode Error",
+    "noApiKey": "No API Key found. Please configure Gemini API Key in Model settings."
+  }
 }

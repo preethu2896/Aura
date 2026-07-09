@@ -1,8 +1,25 @@
-<svg class="w-5.5 h-5.5 absolute inset-0 m-auto" viewBox="0 0 80 80" fill="none">
-                            <!-- 上方的"^"代表A - 更圆润的线条 -->
-                            <path d="M40 20 Q38 22 25 40 Q23 42 26 42 L30 42 Q32 40 40 30 Q48 40 50 42 L54 42 Q57 42 55 40 Q42 22 40 20" fill="white"></path>
-                            <!-- 中间的"."代表i - 中心圆点 -->
-                            <circle cx="40" cy="46" r="3" fill="white"></circle>
-                            <!-- 下方的弧线代表UI - 更圆润的底部弧线 -->
-                            <path d="M18 50 Q40 70 62 50" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
-                        </svg>
+<svg class="w-5.5 h-5.5 absolute inset-0 m-auto" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Glowing Aura Gradient Definitions -->
+  <defs>
+    <linearGradient id="auraGlow" x1="20" y1="20" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <filter id="softBlur" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="1.5"/>
+    </filter>
+  </defs>
+
+  <!-- Glowing Background Aura (Subtle Soft Circle) -->
+  <circle cx="40" cy="40" r="14" fill="url(#auraGlow)" opacity="0.15" filter="url(#softBlur)"/>
+
+  <!-- Minimalist A Symbol with Aura Curve -->
+  <!-- Left leg -->
+  <path d="M28 54L38 24C39 21 41 21 42 24L52 54" stroke="url(#auraGlow)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Horizontal crossbar / aura arc -->
+  <path d="M33 44Q40 40 47 44" stroke="url(#auraGlow)" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Central calm core point -->
+  <circle cx="40" cy="33" r="2" fill="#FFFFFF"/>
+</svg>

@@ -273,9 +273,7 @@ const conversationHistoryProxy = (options: typeof _chatMessageFile, dir: string)
     },
     backup(conversation_id: string) {
       const storage = buildMessageListStorage(conversation_id, dir);
-      return storage.backup(
-        path.join(dir, 'aura-chat-history', 'backup', conversation_id + '_' + Date.now() + '.txt')
-      );
+      return storage.backup(path.join(dir, 'aura-chat-history', 'backup', conversation_id + '_' + Date.now() + '.txt'));
     },
   };
 };

@@ -86,8 +86,7 @@ const makeGitHubReleaseResponse = () => [
     assets: [
       {
         name: 'AURA-1.9.22-mac-arm64.dmg',
-        browser_download_url:
-          'https://github.com/iOfficeAI/AURA/releases/download/v1.9.22/AURA-1.9.22-mac-arm64.dmg',
+        browser_download_url: 'https://github.com/iOfficeAI/AURA/releases/download/v1.9.22/AURA-1.9.22-mac-arm64.dmg',
         size: 123,
         content_type: 'application/x-apple-diskimage',
       },
@@ -99,8 +98,7 @@ const makeGitHubReleaseResponse = () => [
       },
       {
         name: 'AURA-1.9.22-linux-amd64.deb',
-        browser_download_url:
-          'https://github.com/iOfficeAI/AURA/releases/download/v1.9.22/AURA-1.9.22-linux-amd64.deb',
+        browser_download_url: 'https://github.com/iOfficeAI/AURA/releases/download/v1.9.22/AURA-1.9.22-linux-amd64.deb',
         size: 789,
       },
     ],

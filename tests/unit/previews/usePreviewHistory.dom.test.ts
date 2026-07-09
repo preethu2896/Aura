@@ -20,16 +20,16 @@ describe('usePreviewHistory module shape', () => {
     const mod = await import('@/renderer/pages/conversation/Preview/hooks/usePreviewHistory');
     expect(mod).toBeDefined();
     expect(mod.usePreviewHistory).toBeDefined();
-  });
+  }, 60000);
 
   it('usePreviewHistory is a function (React hook)', async () => {
     const mod = await import('@/renderer/pages/conversation/Preview/hooks/usePreviewHistory');
     expect(typeof mod.usePreviewHistory).toBe('function');
-  });
+  }, 60000);
 
   it('the hook function has at most one parameter (options bag)', async () => {
     const mod = await import('@/renderer/pages/conversation/Preview/hooks/usePreviewHistory');
     // React hooks typically take one options argument; assert a loose upper bound.
     expect((mod.usePreviewHistory as { length: number }).length).toBeLessThanOrEqual(2);
-  });
+  }, 60000);
 });

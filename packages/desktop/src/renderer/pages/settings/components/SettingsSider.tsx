@@ -32,6 +32,7 @@ export const BUILTIN_TAB_IDS = [
   'appearance',
   'webui',
   'pet',
+  'voice',
   'system',
   'about',
 ] as const;
@@ -109,6 +110,12 @@ const SettingsSider: React.FC<{ collapsed?: boolean; tooltipEnabled?: boolean }>
         path: 'webui',
       },
       pet: { id: 'pet', label: t('pet.desktopPet'), icon: <Cat />, path: 'pet' },
+      voice: {
+        id: 'voice',
+        label: t('settings.voiceTitle', { defaultValue: 'Voice' }),
+        icon: <Communication />,
+        path: 'voice',
+      },
       system: { id: 'system', label: t('settings.system'), icon: <System />, path: 'system' },
       about: { id: 'about', label: t('settings.about'), icon: <Info />, path: 'about' },
     };

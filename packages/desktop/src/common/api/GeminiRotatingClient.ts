@@ -5,7 +5,7 @@
  */
 
 import { GoogleGenAI, type GenerateContentParameters, type GoogleGenAIOptions } from '@google/genai';
-import { AuthType } from '@office-ai/auracli-core';
+import { AuthType } from '@office-ai/aioncli-core';
 import type { RotatingApiClientOptions } from './RotatingApiClient';
 import { RotatingApiClient } from './RotatingApiClient';
 import {

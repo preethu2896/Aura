@@ -67,6 +67,12 @@ export function getBuiltinSettingsNavItems(isDesktop: boolean, t: TranslateFn): 
       path: 'webui',
     },
     pet: { id: 'pet', label: t('pet.desktopPet'), icon: <Cat theme='outline' size='16' />, path: 'pet' },
+    voice: {
+      id: 'voice',
+      label: t('settings.voiceTitle', { defaultValue: 'Voice' }),
+      icon: <Communication theme='outline' size='16' />,
+      path: 'voice',
+    },
     system: { id: 'system', label: t('settings.system'), icon: <System theme='outline' size='16' />, path: 'system' },
     about: { id: 'about', label: t('settings.about'), icon: <Info theme='outline' size='16' />, path: 'about' },
   };

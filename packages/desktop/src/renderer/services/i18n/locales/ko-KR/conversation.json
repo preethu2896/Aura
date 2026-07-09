@@ -558,5 +558,15 @@
       }
     }
   },
-  "notFound": "대화를 찾을 수 없거나 삭제되었습니다"
+  "notFound": "대화를 찾을 수 없거나 삭제되었습니다",
+  "voice": {
+    "start": "Start Voice Mode",
+    "stop": "Stop Voice Mode",
+    "connecting": "Connecting...",
+    "listening": "Listening...",
+    "thinking": "Thinking...",
+    "speaking": "AURA is speaking...",
+    "error": "Voice Mode Error",
+    "noApiKey": "No API Key found. Please configure Gemini API Key in Model settings."
+  }
 }

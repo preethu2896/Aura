@@ -1,4 +1,5 @@
 import type { SpeechToTextConfig } from '@/common/types/provider/speech';
+import type { VoiceConfig } from '@/common/types/provider/voice';
 import type { IMcpServer, TProviderWithModel } from '@/common/config/storage';
 
 export type GoogleClientSetting = {
@@ -14,6 +15,7 @@ export type ClientBusinessSettingMap = {
   'mcp.config': IMcpServer[] | undefined;
   'tools.imageGenerationModel': ImageGenerationModelSetting | undefined;
   'tools.speechToText': SpeechToTextConfig | undefined;
+  'tools.voice': VoiceConfig | undefined;
   'acp.promptTimeout': number | undefined;
   'acp.agentIdleTimeout': number | undefined;
 };

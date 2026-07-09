@@ -42,6 +42,7 @@ import { useAbortUploadsOnConversationChange } from '@renderer/hooks/file/useAbo
 import UploadProgressBar from '@renderer/components/media/UploadProgressBar';
 import { allSupportedExts } from '@renderer/services/FileService';
 import SpeechInputButton from '@/renderer/components/chat/SpeechInputButton';
+import LiveVoiceButton from '@/renderer/components/chat/LiveVoiceButton';
 import { appendSpeechTranscript } from '@/renderer/hooks/system/useSpeechInput';
 import { createChainedDispatch, useLiveTranscriptInsertion } from '@/renderer/hooks/system/useLiveTranscriptInsertion';
 import { getConversationInputHistory, isCaretOnFirstLine } from '@/renderer/utils/chat/messageHistory';
@@ -1305,6 +1306,9 @@ const SendBox: React.FC<{
       onTranscript={handleSpeechTranscript}
     />
   );
+  const renderedLiveVoiceButton = isMobileCompact ? null : (
+    <LiveVoiceButton disabled={disabled || isLoading || loading} />
+  );
 
   const renderHighlightedInputValue = useCallback(() => {
     if (!input) {
@@ -1596,6 +1600,7 @@ const SendBox: React.FC<{
           </div>
           {isSingleLine && (
             <div className='flex items-center gap-2'>
+              {renderedLiveVoiceButton}
               {renderedSpeechButton}
               {sendButtonPrefix}
               {renderActionButtons()}
@@ -1617,6 +1622,7 @@ const SendBox: React.FC<{
             </div>
             <div className='sendbox-actions flex items-center gap-2'>
               {renderedRightTools}
+              {renderedLiveVoiceButton}
               {renderedSpeechButton}
               {sendButtonPrefix}
               {renderActionButtons()}

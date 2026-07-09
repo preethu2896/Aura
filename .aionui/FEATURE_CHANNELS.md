@@ -291,13 +291,13 @@ created → initializing → ready → starting → running → stopping → sto
 
 **安全措施**
 
-| 机制           | 说明                                 |
-| -------------- | ------------------------------------ |
-| 配对码认证     | 6位随机码，10分钟有效                |
+| 机制           | 说明                               |
+| -------------- | ---------------------------------- |
+| 配对码认证     | 6位随机码，10分钟有效              |
 | 本地批准       | 必须在 AURA 中批准，非 Telegram 中 |
-| 用户白名单     | 仅授权用户可使用                     |
-| 速率限制       | 防止滥用                             |
-| Token 加密存储 | 使用 bcrypt 加密                     |
+| 用户白名单     | 仅授权用户可使用                   |
+| 速率限制       | 防止滥用                           |
+| Token 加密存储 | 使用 bcrypt 加密                   |
 
 #### 消息转换规则
 
@@ -637,9 +637,9 @@ Session {
 | -------- | ---------------------- |
 | 会话模式 | 单活跃会话             |
 | 新建会话 | 点击 🆕 按钮清空上下文 |
-| 会话存储 | 独立于 AURA GUI 会话 |
+| 会话存储 | 独立于 AURA GUI 会话   |
 | Agent    | 固定 Gemini            |
-| Model    | 使用 AURA 默认配置   |
+| Model    | 使用 AURA 默认配置     |
 
 ### 7.3 后期扩展
 
@@ -648,7 +648,7 @@ Session {
 | 多会话     | 支持 `session.list` / `session.switch` |
 | Agent 切换 | 支持 `settings.agent.select`           |
 | Model 切换 | 支持动态选择模型                       |
-| 会话同步   | Telegram 会话与 AURA 会话关联        |
+| 会话同步   | Telegram 会话与 AURA 会话关联          |
 
 ---
 
@@ -964,7 +964,7 @@ src/channels/
 | **Phase 5** | Slack 平台接入              | 🔄 待实现   |
 | **Phase 6** | Discord 平台接入            | 🔄 待实现   |
 | **Phase 7** | 速率限制                    | 🔄 待实现   |
-| **Phase 8** | 会话与 AURA 同步          | 🔄 待实现   |
+| **Phase 8** | 会话与 AURA 同步            | 🔄 待实现   |
 | **Phase 9** | Headless 独立服务模式       | 🔄 待实现   |
 
 ---

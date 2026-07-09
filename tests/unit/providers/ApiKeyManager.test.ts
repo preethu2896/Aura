@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ApiKeyManager } from '@/common/api/ApiKeyManager';
-import { AuthType } from '@office-ai/auracli-core';
+import { AuthType } from '@office-ai/aioncli-core';
 
 describe('ApiKeyManager', () => {
   beforeEach(() => {

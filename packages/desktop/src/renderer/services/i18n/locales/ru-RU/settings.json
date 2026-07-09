@@ -1206,5 +1206,16 @@
       "diagnose": "У меня возникла проблема с AURA, помоги её диагностировать.\n\n[Модуль] {{module}}\n[Описание] {{description}}\n[Вложения] см. скриншоты в поле ввода.\n\nПожалуйста, определи причину и подскажи, как исправить."
     }
   },
-  "providerIdConflict": "Provider ID уже существует. Повторите попытку."
+  "providerIdConflict": "Provider ID уже существует. Повторите попытку.",
+  "voiceTitle": "Voice Mode",
+  "voiceDescription": "Configure settings for Gemini Live Voice Mode.",
+  "voiceEnabled": "Enable Voice Mode",
+  "voicePreferredProvider": "Preferred Provider",
+  "voiceLiveModel": "Live Model",
+  "voiceMicrophone": "Microphone",
+  "voiceSpeaker": "Speaker",
+  "voiceNoiseSuppression": "Noise Suppression",
+  "voiceEchoCancellation": "Echo Cancellation",
+  "voiceActivityDetection": "Voice Activity Detection",
+  "voiceAutoInterrupt": "Auto Interrupt"
 }

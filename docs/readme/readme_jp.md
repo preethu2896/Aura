@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <a href="../../readme.md">English</a> | <a href="./readme_ch.md">简体中文</a> | <a href="./readme_tw.md">繁體中文</a> | <strong>日本語</strong> | <a href="./readme_ko.md">한국어</a> | <a href="./readme_es.md">Español</a> | <a href="./readme_pt.md">Português</a> | <a href="./readme_tr.md">Türkçe</a> | <a href="./readme_ru.md">Русский</a> | <a href="./readme_uk.md">Українська</a> | <a href="https://www.aionui.com" target="_blank">公式サイト</a>
+  <a href="../../readme.md">English</a> | <a href="./readme_ch.md">简体中文</a> | <a href="./readme_tw.md">繁體中文</a> | <strong>日本語</strong> | <a href="./readme_ko.md">한국어</a> | <a href="./readme_es.md">Español</a> | <a href="./readme_pt.md">Português</a> | <a href="./readme_tr.md">Türkçe</a> | <a href="./readme_ru.md">Русский</a> | <a href="./readme_uk.md">Українська</a> | <a href="https://github.com/iOfficeAI/AURA" target="_blank">公式サイト</a>
 </p>
 
 <p align="center">
@@ -56,7 +56,7 @@
 
 **AURA は単なるチャットクライアントではありません。** これは Cowork プラットフォームであり、AI Agent があなたのコンピューター上であなたと共に働きます——ファイルを読み、コードを書き、ウェブを閲覧し、タスクを自動化します。Agent のすべての動作を見ることができ、常にあなたがコントロールしています。
 
-|                                       | 従来の AI チャットクライアント | **AURA (Cowork)**                                                                                                  |
+|                                       | 従来の AI チャットクライアント | **AURA (Cowork)**                                                                                                    |
 | :------------------------------------ | :----------------------------- | :------------------------------------------------------------------------------------------------------------------- |
 | AI がファイルを操作できる             | 限定的または不可               | **はい — 内蔵 Agent、完全なファイルアクセス**                                                                        |
 | AI がマルチステップタスクを実行できる | 限定的                         | **はい — 自律実行、あなたの承認が必要**                                                                              |
@@ -471,7 +471,7 @@ _複数の会話を開き、タスクが混ざらない、独立したメモリ�
 
 AURA は**無料でオープンソースの Multi-AI Agent デスクトップ**です。macOS でのみ動作し Claude にロックされている Claude Cowork と比較して、AURA は全モデル、クロスプラットフォームの強化版です。
 
-| 次元             | Claude Cowork    | AURA                                                |
+| 次元             | Claude Cowork    | AURA                                                  |
 | :--------------- | :--------------- | :---------------------------------------------------- |
 | OS               | macOS のみ       | macOS / Windows / Linux                               |
 | モデルサポート   | Claude のみ      | Gemini、Claude、DeepSeek、OpenAI、Ollama、...         |

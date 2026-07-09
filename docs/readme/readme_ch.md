@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <a href="../../readme.md">English</a> | <strong>简体中文</strong> | <a href="./readme_tw.md">繁體中文</a> | <a href="./readme_jp.md">日本語</a> | <a href="./readme_ko.md">한국어</a> | <a href="./readme_es.md">Español</a> | <a href="./readme_pt.md">Português</a> | <a href="./readme_tr.md">Türkçe</a> | <a href="./readme_ru.md">Русский</a> | <a href="./readme_uk.md">Українська</a> | <a href="https://www.aionui.com" target="_blank">官方网站</a>
+  <a href="../../readme.md">English</a> | <strong>简体中文</strong> | <a href="./readme_tw.md">繁體中文</a> | <a href="./readme_jp.md">日本語</a> | <a href="./readme_ko.md">한국어</a> | <a href="./readme_es.md">Español</a> | <a href="./readme_pt.md">Português</a> | <a href="./readme_tr.md">Türkçe</a> | <a href="./readme_ru.md">Русский</a> | <a href="./readme_uk.md">Українська</a> | <a href="https://github.com/iOfficeAI/AURA" target="_blank">官方网站</a>
 </p>
 
 <p align="center">
@@ -56,7 +56,7 @@
 
 **AURA 不只是个聊天工具。** 它是一个真正的 Cowork 平台，AI Agent 就像您的得力助手，在电脑上帮您处理各种任务——读文件、写代码、查资料、自动化工作流。Agent 的一举一动都在您的掌控之中，透明可见。
 
-|                       | 传统 AI 聊天客户端 | **AURA (Cowork)**                                                                                    |
+|                       | 传统 AI 聊天客户端 | **AURA (Cowork)**                                                                                      |
 | :-------------------- | :----------------- | :----------------------------------------------------------------------------------------------------- |
 | AI 可以操作您的文件   | 有限或不可用       | **是 — 内置 Agent，完全文件访问**                                                                      |
 | AI 可以执行多步骤任务 | 有限               | **是 — 自主执行，需您批准**                                                                            |
@@ -512,7 +512,7 @@ _同时开多个对话，任务不会乱，每个都有独立记忆，效率直�
 
 AURA 是一个**免费开源的 Multi-AI Agent 桌面应用**。相比只能在 macOS 上用、还只能绑定 Claude 的 Claude Cowork，AURA 支持全模型、跨平台，是它的全面升级版。
 
-| 维度     | Claude Cowork | AURA                                                 |
+| 维度     | Claude Cowork | AURA                                                   |
 | :------- | :------------ | :----------------------------------------------------- |
 | OS       | 仅 macOS      | macOS / Windows / Linux                                |
 | 模型支持 | 仅 Claude     | Gemini、Claude、DeepSeek、OpenAI、Ollama 等            |

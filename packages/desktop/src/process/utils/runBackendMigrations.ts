@@ -397,10 +397,7 @@ async function syncBuiltinMcpConfig(configFile: ConfigFile): Promise<void> {
   }
 
   await httpRequest<void>('PUT', '/api/settings/client', { 'mcp.config': mergedMcpConfig });
-  console.info(
-    '[AURA] Synced builtin MCP config to backend settings (%d builtin servers)',
-    localBuiltinServers.length
-  );
+  console.info('[AURA] Synced builtin MCP config to backend settings (%d builtin servers)', localBuiltinServers.length);
 }
 
 export async function runBackendMigrations(configFile: ConfigFile): Promise<void> {

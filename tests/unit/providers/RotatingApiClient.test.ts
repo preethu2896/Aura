@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RotatingApiClient } from '@/common/api/RotatingApiClient';
-import { AuthType } from '@office-ai/auracli-core';
+import { AuthType } from '@office-ai/aioncli-core';
 
 // Do not globally mock ApiKeyManager - we'll test integration with real ApiKeyManager
 // Only mock it selectively in specific tests that need custom behavior

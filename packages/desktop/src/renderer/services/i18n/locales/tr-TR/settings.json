@@ -1204,5 +1204,16 @@
       "diagnose": "AURA kullanırken bir sorunla karşılaştım, teşhis etmeme yardım et.\n\n[Modül] {{module}}\n[Açıklama] {{description}}\n[Ekler] giriş alanındaki ekran görüntülerine bakın.\n\nLütfen nedenini teşhis et ve nasıl düzelteceğimi söyle."
     }
   },
-  "providerIdConflict": "Provider ID zaten var. Lütfen tekrar deneyin."
+  "providerIdConflict": "Provider ID zaten var. Lütfen tekrar deneyin.",
+  "voiceTitle": "Voice Mode",
+  "voiceDescription": "Configure settings for Gemini Live Voice Mode.",
+  "voiceEnabled": "Enable Voice Mode",
+  "voicePreferredProvider": "Preferred Provider",
+  "voiceLiveModel": "Live Model",
+  "voiceMicrophone": "Microphone",
+  "voiceSpeaker": "Speaker",
+  "voiceNoiseSuppression": "Noise Suppression",
+  "voiceEchoCancellation": "Echo Cancellation",
+  "voiceActivityDetection": "Voice Activity Detection",
+  "voiceAutoInterrupt": "Auto Interrupt"
 }

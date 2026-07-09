@@ -9,7 +9,7 @@ import { ClientFactory, normalizeNewApiBaseUrl } from '@/common/api/ClientFactor
 import { OpenAIRotatingClient } from '@/common/api/OpenAIRotatingClient';
 import { GeminiRotatingClient } from '@/common/api/GeminiRotatingClient';
 import { AnthropicRotatingClient } from '@/common/api/AnthropicRotatingClient';
-import { AuthType } from '@office-ai/auracli-core';
+import { AuthType } from '@office-ai/aioncli-core';
 
 // Mock rotating clients
 vi.mock('@/common/api/OpenAIRotatingClient');

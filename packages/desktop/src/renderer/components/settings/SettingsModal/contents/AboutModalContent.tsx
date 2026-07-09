@@ -123,7 +123,7 @@ const AboutModalContent: React.FC = () => {
     },
     {
       title: t('settings.officialWebsite'),
-      url: 'https://www.aionui.com',
+      url: 'https://github.com/iOfficeAI/AURA',
       icon: <Right theme='outline' size='16' />,
     },
   ];

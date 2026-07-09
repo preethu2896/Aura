@@ -551,7 +551,7 @@ describe('agent error locale copy', () => {
       const locale = JSON.parse(readFileSync(path.join(localeDir, localeName, 'conversation.json'), 'utf8'));
       const agentError = locale.agentError;
 
-      expect(agentError.ownership.aionui, localeName).not.toMatch(/AURA/);
+      expect(agentError.ownership.aura, localeName).not.toMatch(/AURA/);
 
       for (const [code, copy] of Object.entries<Record<string, string>>(agentError.codes)) {
         if (!code.startsWith('AURA_')) continue;

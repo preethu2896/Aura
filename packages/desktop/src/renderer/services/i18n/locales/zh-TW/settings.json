@@ -1206,5 +1206,16 @@
       "diagnose": "我在使用 AURA 時遇到問題，幫我排查一下。\n\n【模組】{{module}}\n【問題描述】{{description}}\n【附件】見輸入框中的截圖。\n\n請幫我診斷原因並給出解決辦法。"
     }
   },
-  "providerIdConflict": "Provider ID 已存在，請重試。"
+  "providerIdConflict": "Provider ID 已存在，請重試。",
+  "voiceTitle": "Voice Mode",
+  "voiceDescription": "Configure settings for Gemini Live Voice Mode.",
+  "voiceEnabled": "Enable Voice Mode",
+  "voicePreferredProvider": "Preferred Provider",
+  "voiceLiveModel": "Live Model",
+  "voiceMicrophone": "Microphone",
+  "voiceSpeaker": "Speaker",
+  "voiceNoiseSuppression": "Noise Suppression",
+  "voiceEchoCancellation": "Echo Cancellation",
+  "voiceActivityDetection": "Voice Activity Detection",
+  "voiceAutoInterrupt": "Auto Interrupt"
 }
