@@ -43,6 +43,12 @@ import type {
   AddProjectMemoryRequest,
   UpdateProjectMemoryRequest,
 } from '../types/project/projectTypes';
+import type {
+  TWorkspaceMemory,
+  TConversationMemory,
+  AddWorkspaceMemoryRequest,
+  AddConversationMemoryRequest,
+} from '../types/project/memoryTypes';
 import type { PreviewHistoryTarget, PreviewSnapshotInfo } from '../types/office/preview';
 import type {
   EnsureConversationRuntimeResponse,
@@ -2091,4 +2097,23 @@ export const projects = {
   ),
   // Real-time events
   listChanged: wsEmitter<{ action: 'created' | 'updated' | 'deleted'; project_id: string }>('project.listChanged'),
+};
+
+// ---------------------------------------------------------------------------
+// Workspace & Conversation Hierarchical Memory (IPC)
+// ---------------------------------------------------------------------------
+
+export const workspaceMemory = {
+  list: bridge.buildProvider<TWorkspaceMemory[], void>('workspace-memory:list'),
+  add: bridge.buildProvider<TWorkspaceMemory, AddWorkspaceMemoryRequest>('workspace-memory:add'),
+  update: bridge.buildProvider<TWorkspaceMemory, { id: string; updates: Partial<AddWorkspaceMemoryRequest> }>(
+    'workspace-memory:update'
+  ),
+  delete: bridge.buildProvider<void, { id: string }>('workspace-memory:delete'),
+};
+
+export const conversationMemory = {
+  list: bridge.buildProvider<TConversationMemory[], { conversationId: string }>('conversation-memory:list'),
+  add: bridge.buildProvider<TConversationMemory, AddConversationMemoryRequest>('conversation-memory:add'),
+  delete: bridge.buildProvider<void, { id: string }>('conversation-memory:delete'),
 };

@@ -15,9 +15,10 @@ import { useLayoutContext } from '@/renderer/hooks/context/LayoutContext';
 import { usePresetAssistantInfo } from '@/renderer/hooks/agent/usePresetAssistantInfo';
 import { iconColors } from '@/renderer/styles/colors';
 import { Button, Dropdown, Menu, Message, Tooltip, Typography } from '@arco-design/web-react';
-import { History } from '@icon-park/react';
-import React, { useCallback, useMemo, useRef } from 'react';
+import { History, Notes } from '@icon-park/react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import ConversationDetailsPanel from './ConversationDetailsPanel';
 import { useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
 import { emitter } from '../../../utils/emitter';
@@ -145,6 +146,7 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
   conversation,
   sliderTitle,
 }) => {
+  const [showDetails, setShowDetails] = useState(false);
   const runtimeView = useConversationRuntimeView(conversation.id);
   const onSelectModel = useCallback(
     async (_provider: IProvider, modelName: string) => {
@@ -209,6 +211,13 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
             onSetThoughtLevel={handleThoughtLevelSetOption}
           />
         )}
+        <Button
+          type='text'
+          size='small'
+          icon={<Notes size={16} />}
+          onClick={() => setShowDetails(!showDetails)}
+          className={showDetails ? 'text-[var(--color-primary-light-4)]' : 'text-[var(--color-text-3)]'}
+        />
       </div>
     ),
     workspaceEnabled,
@@ -221,20 +230,27 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
 
   return (
     <ChatLayout {...chatLayoutProps} conversation_id={conversation.id}>
-      <AionrsChat
-        conversation_id={conversation.id}
-        workspace={conversation.extra.workspace}
-        modelSelection={modelSelection}
-        session_mode={conversation.extra?.session_mode}
-        cron_job_id={cronJobId}
-        loadedSkills={(conversation.extra as { skills?: string[] } | undefined)?.skills}
-        loadedMcpServers={(conversation.extra as { mcp_servers?: string[] } | undefined)?.mcp_servers}
-        loadedMcpStatuses={
-          (conversation.extra as { mcp_statuses?: IConversationMcpStatus[] } | undefined)?.mcp_statuses
-        }
-        agent_name={presetAssistantInfo?.name}
-        assistantId={aionrsAssistantId}
-      />
+      <div className='flex h-full w-full min-w-0 relative'>
+        <div className='flex-1 min-w-0 h-full'>
+          <AionrsChat
+            conversation_id={conversation.id}
+            workspace={conversation.extra.workspace}
+            modelSelection={modelSelection}
+            session_mode={conversation.extra?.session_mode}
+            cron_job_id={cronJobId}
+            loadedSkills={(conversation.extra as { skills?: string[] } | undefined)?.skills}
+            loadedMcpServers={(conversation.extra as { mcp_servers?: string[] } | undefined)?.mcp_servers}
+            loadedMcpStatuses={
+              (conversation.extra as { mcp_statuses?: IConversationMcpStatus[] } | undefined)?.mcp_statuses
+            }
+            agent_name={presetAssistantInfo?.name}
+            assistantId={aionrsAssistantId}
+          />
+        </div>
+        {showDetails && (
+          <ConversationDetailsPanel conversationId={conversation.id} onClose={() => setShowDetails(false)} />
+        )}
+      </div>
     </ChatLayout>
   );
 };
@@ -337,6 +353,8 @@ const ChatConversation: React.FC<{
     return <AionrsConversationPanel key={conversation.id} conversation={conversation} sliderTitle={sliderTitle} />;
   }
 
+  const [showDetails, setShowDetails] = useState(false);
+
   // 如果有预设助手信息，使用预设助手的 logo 和名称；加载中时不进入 fallback；否则使用 backend 的 logo
   // If preset assistant info exists, use preset logo/name; while loading, avoid fallback; otherwise use backend logo
   const chatLayoutProps = presetAssistantInfo
@@ -358,6 +376,15 @@ const ChatConversation: React.FC<{
         </div>
       )}
       {modelSelector && <div className='shrink-0'>{modelSelector}</div>}
+      {conversation && (
+        <Button
+          type='text'
+          size='small'
+          icon={<Notes size={16} />}
+          onClick={() => setShowDetails(!showDetails)}
+          className={showDetails ? 'text-[var(--color-primary-light-4)]' : 'text-[var(--color-text-3)]'}
+        />
+      )}
     </div>
   );
 
@@ -375,7 +402,12 @@ const ChatConversation: React.FC<{
       }
       conversation_id={conversation?.id}
     >
-      {conversationNode}
+      <div className='flex h-full w-full min-w-0 relative'>
+        <div className='flex-1 min-w-0 h-full'>{conversationNode}</div>
+        {conversation && showDetails && (
+          <ConversationDetailsPanel conversationId={conversation.id} onClose={() => setShowDetails(false)} />
+        )}
+      </div>
     </ChatLayout>
   );
 };

@@ -48,6 +48,8 @@ import { iconColors } from '@/renderer/styles/colors';
 import { emitter, useAddEventListener } from '@/renderer/utils/emitter';
 import { mergeFileSelectionItems } from '@/renderer/utils/file/fileSelection';
 import { buildDisplayMessage, collectSelectedFiles } from '@/renderer/utils/file/messageFiles';
+import { useHierarchicalMemory } from '@/renderer/hooks/chat/useHierarchicalMemory';
+import { useConversationSummarizer } from '@/renderer/hooks/chat/useConversationSummarizer';
 import type { AgentModeOption } from '@/renderer/utils/model/agentTypes';
 import { Message, Tag } from '@arco-design/web-react';
 import { Brain, MagicHat, Shield } from '@icon-park/react';
@@ -149,6 +151,8 @@ const AionrsSendBox: React.FC<{
   }, [current_model?.platform, current_model?.id, current_model?.use_model]);
   const teamPermission = useTeamPermission();
   const propagateMode = teamPermission?.propagateMode;
+  const { getHierarchicalMemoryContext } = useHierarchicalMemory();
+  const { summarizeConversation } = useConversationSummarizer();
 
   const { thought, running, setActiveMsgId, setWaitingResponse, resetState } = useAionrsMessage(conversation_id, {
     onConfigChanged: (capabilities) => {
@@ -293,17 +297,51 @@ const AionrsSendBox: React.FC<{
 
         runtimeView.markSendStarted();
         setWaitingResponse(true);
-        const res = await ipcBridge.conversation.sendMessage.invoke({
-          input: displayMessage,
-          conversation_id,
-          files,
+
+        // Fetch current conversation configuration for base system prompt (preset_context) and project_id
+        const conversation = await getConversationOrNull(conversation_id);
+        const projectId = (conversation?.extra as any)?.project_id;
+        const originalPresetContext = (conversation?.extra as any)?.preset_context;
+
+        // Dynamically compile hierarchical memory context
+        const compiledContext = await getHierarchicalMemoryContext(conversation_id, projectId, originalPresetContext);
+
+        // Ephemerally apply memory context
+        await ipcBridge.conversation.update.invoke({
+          id: conversation_id,
+          updates: {
+            extra: { preset_context: compiledContext } as any,
+          },
+          merge_extra: true,
         });
+
+        let res;
+        try {
+          res = await ipcBridge.conversation.sendMessage.invoke({
+            input: displayMessage,
+            conversation_id,
+            files,
+          });
+        } finally {
+          // Restore original preset_context immediately
+          await ipcBridge.conversation.update.invoke({
+            id: conversation_id,
+            updates: {
+              extra: { preset_context: originalPresetContext || null } as any,
+            },
+            merge_extra: true,
+          });
+        }
+
         setActiveMsgId(res.msg_id);
         runtimeView.markSendAccepted(res.turn_id, res.runtime, res.msg_id);
         emitter.emit('chat.history.refresh');
         if (files.length > 0) {
           emitter.emit('aionrs.workspace.refresh');
         }
+
+        // Trigger dynamic summarization in the background
+        void summarizeConversation(conversation_id);
       } catch (error) {
         const errorMessage =
           getConversationRuntimeWorkspaceErrorMessage(error, t) ||
@@ -317,9 +355,11 @@ const AionrsSendBox: React.FC<{
       checkAndUpdateTitle,
       conversation_id,
       current_model?.use_model,
+      getHierarchicalMemoryContext,
       runtimeView,
       setActiveMsgId,
       setWaitingResponse,
+      summarizeConversation,
       t,
       teamPermission,
       teamSendMessage,

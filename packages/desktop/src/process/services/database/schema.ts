@@ -132,6 +132,35 @@ export function initSchema(db: ISqliteDriver): void {
   )`);
   db.exec('CREATE INDEX IF NOT EXISTS idx_tasks_team ON team_tasks(team_id, status)');
 
+  // Workspace memory table
+  db.exec(`CREATE TABLE IF NOT EXISTS workspace_memory (
+    id TEXT PRIMARY KEY,
+    content TEXT NOT NULL,
+    importance REAL NOT NULL DEFAULT 0.5,
+    tags TEXT NOT NULL DEFAULT '[]',
+    source TEXT NOT NULL DEFAULT 'user',
+    vector_id TEXT,
+    embedding_status TEXT DEFAULT 'pending',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`);
+
+  // Conversation memory table
+  db.exec(`CREATE TABLE IF NOT EXISTS conversation_memory (
+    id TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL,
+    content TEXT NOT NULL,
+    importance REAL NOT NULL DEFAULT 0.5,
+    tags TEXT NOT NULL DEFAULT '[]',
+    source TEXT NOT NULL DEFAULT 'agent',
+    vector_id TEXT,
+    embedding_status TEXT DEFAULT 'pending',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+  )`);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_conv_memory_conversation ON conversation_memory(conversation_id)');
+
   console.log('[Database] Schema initialized successfully');
 }
 
@@ -160,4 +189,4 @@ export function setDatabaseVersion(db: ISqliteDriver, version: number): void {
  * Current database schema version
  * Update this when adding new migrations in migrations.ts
  */
-export const CURRENT_DB_VERSION = 27;
+export const CURRENT_DB_VERSION = 28;

@@ -12,7 +12,7 @@ import { type IExtensionSettingsTab } from '@/common/adapter/ipcBridge';
 import { useExtI18n } from '@/renderer/hooks/system/useExtI18n';
 import { useExtensionSettingsTabs } from '@/renderer/hooks/system/useExtensionSettingsTabs';
 import { Tabs } from '@arco-design/web-react';
-import { Computer, Earth, Info, LinkCloud, Puzzle, Toolkit } from '@icon-park/react';
+import { Computer, Earth, Info, LinkCloud, Puzzle, Toolkit, Brain } from '@icon-park/react';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,7 @@ import ModelModalContent from './contents/ModelModalContent';
 import SystemModalContent from './contents/SystemModalContent';
 import ToolsModalContent from './contents/ToolsModalContent';
 import WebuiModalContent from './contents/WebuiModalContent';
+import WorkspaceMemoryModalContent from './contents/WorkspaceMemoryModalContent';
 import { SettingsViewModeProvider } from './settingsViewContext';
 import { LEGACY_ANCHOR_REMAP } from '@/renderer/pages/settings/components/SettingsSider';
 
@@ -55,7 +56,7 @@ const RESIZE_DEBOUNCE_DELAY = 150;
 /**
  * 内置设置标签页类型 / Built-in settings tab type
  */
-export type BuiltinSettingTab = 'model' | 'agent' | 'tools' | 'webui' | 'system' | 'about';
+export type BuiltinSettingTab = 'model' | 'agent' | 'tools' | 'webui' | 'system' | 'about' | 'workspace_memory';
 
 /**
  * 设置标签页类型（内置 + 扩展）/ Settings tab type (built-in + extension)
@@ -212,6 +213,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onCancel, defaul
 
     builtinItems.push(
       {
+        key: 'workspace_memory',
+        label: t('settings.workspaceMemory', { defaultValue: 'Workspace Memory' }),
+        icon: <Brain theme='outline' size='20' fill={iconColors.secondary} />,
+      },
+      {
         key: 'system',
         label: t('settings.system'),
         icon: <Computer theme='outline' size='20' fill={iconColors.secondary} />,
@@ -310,6 +316,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onCancel, defaul
         return <WebuiModalContent />;
       case 'system':
         return <SystemModalContent />;
+      case 'workspace_memory':
+        return <WorkspaceMemoryModalContent />;
       case 'about':
         return <AboutModalContent />;
       default:

@@ -91,6 +91,7 @@ import Sider from './components/layout/Sider';
 import { useAuth } from './hooks/context/AuthContext';
 import { ConversationHistoryProvider } from './hooks/context/ConversationHistoryContext';
 import { ProjectProvider } from './hooks/context/ProjectContext';
+import { SessionMemoryProvider } from './hooks/context/SessionMemoryContext';
 import HOC from './utils/ui/HOC';
 import type { BackendStartupFailureInfo } from '@/common/types/platform/electron';
 import type { IRuntimeStatusEvent, RuntimeFailureKind } from '@/common/adapter/ipcBridge';
@@ -290,7 +291,9 @@ const Main = () => {
       layout={
         <ProjectProvider>
           <ConversationHistoryProvider>
-            <Layout sider={<Sider />} />
+            <SessionMemoryProvider>
+              <Layout sider={<Sider />} />
+            </SessionMemoryProvider>
           </ConversationHistoryProvider>
         </ProjectProvider>
       }

@@ -1381,6 +1381,49 @@ const migration_v27: IMigration = {
   },
 };
 
+const migration_v28: IMigration = {
+  version: 28,
+  name: 'Added Workspace and Conversation memory tables',
+  up: (db) => {
+    // Workspace memory table
+    db.exec(`CREATE TABLE IF NOT EXISTS workspace_memory (
+      id TEXT PRIMARY KEY,
+      content TEXT NOT NULL,
+      importance REAL NOT NULL DEFAULT 0.5,
+      tags TEXT NOT NULL DEFAULT '[]',
+      source TEXT NOT NULL DEFAULT 'user',
+      vector_id TEXT,
+      embedding_status TEXT DEFAULT 'pending',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    )`);
+
+    // Conversation memory table
+    db.exec(`CREATE TABLE IF NOT EXISTS conversation_memory (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      importance REAL NOT NULL DEFAULT 0.5,
+      tags TEXT NOT NULL DEFAULT '[]',
+      source TEXT NOT NULL DEFAULT 'agent',
+      vector_id TEXT,
+      embedding_status TEXT DEFAULT 'pending',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+    )`);
+    db.exec('CREATE INDEX IF NOT EXISTS idx_conv_memory_conversation ON conversation_memory(conversation_id)');
+
+    console.log('[Migration v28] Added Workspace and Conversation memory tables');
+  },
+  down: (db) => {
+    db.exec('DROP INDEX IF EXISTS idx_conv_memory_conversation');
+    db.exec('DROP TABLE IF EXISTS conversation_memory');
+    db.exec('DROP TABLE IF EXISTS workspace_memory');
+    console.log('[Migration v28] Rolled back: Removed Workspace and Conversation memory tables');
+  },
+};
+
 /**
  * All migrations in order
  */
@@ -1390,7 +1433,7 @@ export const ALL_MIGRATIONS: IMigration[] = [
   migration_v7, migration_v8, migration_v9, migration_v10, migration_v11, migration_v12,
   migration_v13, migration_v14, migration_v15, migration_v16, migration_v17, migration_v18,
   migration_v19, migration_v20, migration_v21, migration_v22, migration_v23, migration_v24,
-  migration_v25, migration_v26, migration_v27,
+  migration_v25, migration_v26, migration_v27, migration_v28,
 ];
 
 /**
