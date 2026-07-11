@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import useSWR, { type SWRConfiguration } from 'swr';
 import { useGoogleAuthModels } from './useGoogleAuthModels';
 import { hasSpecificModelCapability } from '@/renderer/utils/model/modelCapabilities';
+import { resolveModelMetadata } from '@/common/utils/modelMetadataRegistry';
 
 export interface ModelProviderListResult {
   providers: IProvider[];
@@ -89,8 +90,23 @@ export const useModelProviderList = (): ModelProviderListResult => {
       } as unknown as IProvider;
       list = [googleProvider, ...list];
     }
-    // 过滤掉没有可用模型的 provider
-    return list.filter((p) => getAvailableModels(p).length > 0);
+
+    // Filter and map providers to include modelMetadataList
+    return list
+      .filter((p) => getAvailableModels(p).length > 0 || p.id === GOOGLE_AUTH_PROVIDER_ID)
+      .map((p) => {
+        const available = getAvailableModels(p);
+        const modelsToMap =
+          p.id === GOOGLE_AUTH_PROVIDER_ID && available.length === 0
+            ? ['gemini-1.5-pro', 'gemini-1.5-flash']
+            : available;
+
+        const metadataList = modelsToMap.map((modelName) => resolveModelMetadata(p.platform, modelName));
+        return {
+          ...p,
+          modelMetadataList: metadataList,
+        };
+      });
   }, [getAvailableModels, isGoogleAuth, modelConfig]);
 
   const formatModelLabel = useCallback((_provider: { platform?: string } | undefined, modelName?: string) => {

@@ -34,6 +34,15 @@ import type {
   SetAssistantStateRequest,
   UpdateAssistantRequest,
 } from '../types/agent/assistantTypes';
+import type {
+  TProject,
+  TProjectFile,
+  TProjectMemory,
+  CreateProjectRequest,
+  UpdateProjectRequest,
+  AddProjectMemoryRequest,
+  UpdateProjectMemoryRequest,
+} from '../types/project/projectTypes';
 import type { PreviewHistoryTarget, PreviewSnapshotInfo } from '../types/office/preview';
 import type {
   EnsureConversationRuntimeResponse,
@@ -1550,6 +1559,8 @@ export interface ICreateConversationParams {
     remote_agent_id?: string;
     extra_skill_paths?: string[];
     team_id?: string;
+    /** Project this conversation belongs to */
+    project_id?: string;
   };
 }
 
@@ -2026,4 +2037,58 @@ export const team = {
   childTurnStarted: wsEmitter<ITeamChildTurnEvent>('team.childTurnStarted'),
   childTurnCompleted: wsEmitter<ITeamChildTurnEvent>('team.childTurnCompleted'),
   childTurnCancelled: wsEmitter<ITeamChildTurnEvent>('team.childTurnCancelled'),
+};
+
+// ---------------------------------------------------------------------------
+// Projects — routed to /api/projects/*
+// ---------------------------------------------------------------------------
+
+export const projects = {
+  // Project CRUD
+  list: httpGet<TProject[], void>('/api/projects'),
+  get: httpGet<TProject, { id: string }>((p) => `/api/projects/${p.id}`),
+  create: httpPost<TProject, CreateProjectRequest>('/api/projects'),
+  update: httpPatch<TProject, { id: string; updates: UpdateProjectRequest }>(
+    (p) => `/api/projects/${p.id}`,
+    (p) => p.updates
+  ),
+  delete: httpDelete<void, { id: string }>((p) => `/api/projects/${p.id}`),
+  archive: httpPost<TProject, { id: string }>(
+    (p) => `/api/projects/${p.id}/archive`,
+    () => undefined
+  ),
+  unarchive: httpPost<TProject, { id: string }>(
+    (p) => `/api/projects/${p.id}/unarchive`,
+    () => undefined
+  ),
+  pin: httpPost<TProject, { id: string }>(
+    (p) => `/api/projects/${p.id}/pin`,
+    () => undefined
+  ),
+  unpin: httpPost<TProject, { id: string }>(
+    (p) => `/api/projects/${p.id}/unpin`,
+    () => undefined
+  ),
+  reorder: httpPost<void, { ordered_ids: string[] }>('/api/projects/reorder'),
+  // Files
+  listFiles: httpGet<TProjectFile[], { id: string }>((p) => `/api/projects/${p.id}/files`),
+  uploadFile: httpPost<TProjectFile, FormData>((p: any) => `/api/projects/${p.get('project_id')}/files`),
+  deleteFile: httpDelete<void, { project_id: string; file_id: string }>(
+    (p) => `/api/projects/${p.project_id}/files/${p.file_id}`
+  ),
+  // Memory
+  listMemory: httpGet<TProjectMemory[], { id: string }>((p) => `/api/projects/${p.id}/memory`),
+  addMemory: httpPost<TProjectMemory, { project_id: string } & AddProjectMemoryRequest>(
+    (p) => `/api/projects/${p.project_id}/memory`,
+    (p) => ({ content: p.content, tags: p.tags, importance: p.importance, source: p.source })
+  ),
+  updateMemory: httpPatch<TProjectMemory, { project_id: string; id: string } & UpdateProjectMemoryRequest>(
+    (p) => `/api/projects/${p.project_id}/memory/${p.id}`,
+    (p) => ({ content: p.content, tags: p.tags, importance: p.importance, source: p.source })
+  ),
+  deleteMemory: httpDelete<void, { project_id: string; id: string }>(
+    (p) => `/api/projects/${p.project_id}/memory/${p.id}`
+  ),
+  // Real-time events
+  listChanged: wsEmitter<{ action: 'created' | 'updated' | 'deleted'; project_id: string }>('project.listChanged'),
 };

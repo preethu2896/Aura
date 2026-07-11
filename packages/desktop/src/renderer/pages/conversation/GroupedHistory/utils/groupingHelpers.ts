@@ -99,7 +99,15 @@ export const buildGroupedHistory = (
   t: (key: string) => string
 ): GroupedHistoryResult => {
   // Filter out team-owned conversations; they are only visible via the Teams panel
-  const visibleConversations = conversations.filter((conv) => !isTeamConversation(conv));
+  // Filter out conversations assigned to non-General projects; they appear in ProjectSiderSection
+  const visibleConversations = conversations.filter((conv) => {
+    if (isTeamConversation(conv)) return false;
+    // Conversations with a project_id that is not the General project are rendered
+    // inside their project folder in ProjectSiderSection, not in the main timeline.
+    const projectId = conv.extra?.project_id as string | undefined;
+    if (projectId && projectId !== '00000000-0000-0000-0000-000000000001') return false;
+    return true;
+  });
 
   const pinnedConversations = visibleConversations
     .filter((conversation) => isConversationPinned(conversation))

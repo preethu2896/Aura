@@ -14,6 +14,8 @@ export type VoiceConfig = {
   echoCancellation: boolean;
   voiceActivityDetection: boolean;
   autoInterrupt: boolean;
+  voiceName?: string;
+  autoInterruptThreshold?: number;
 };
 
 export const DEFAULT_VOICE_CONFIG: VoiceConfig = {
@@ -26,4 +28,6 @@ export const DEFAULT_VOICE_CONFIG: VoiceConfig = {
   echoCancellation: true,
   voiceActivityDetection: true,
   autoInterrupt: true,
+  voiceName: 'Aoede',
+  autoInterruptThreshold: 0.04,
 };

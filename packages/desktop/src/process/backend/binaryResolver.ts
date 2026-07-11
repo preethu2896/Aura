@@ -94,8 +94,22 @@ function bundledPath(
   binaryName: string,
   diagnostics: BackendBinaryResolveDiagnostics
 ): string | null {
-  const resourcesPath = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
+  let resourcesPath = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
   if (!resourcesPath) return null;
+
+  let isPackaged = true;
+  try {
+    const { app } = require('electron');
+    isPackaged = app.isPackaged;
+  } catch {
+    // Fallback if not running inside Electron (e.g. in unit tests)
+    isPackaged = !resourcesPath.includes('node_modules');
+  }
+
+  if (!isPackaged) {
+    resourcesPath = join(process.cwd(), 'resources');
+  }
+
   diagnostics.resourcesPath = resourcesPath;
 
   const bundledDir = join(resourcesPath, 'bundled-aioncore');

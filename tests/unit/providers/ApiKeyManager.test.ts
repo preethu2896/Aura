@@ -74,10 +74,12 @@ describe('ApiKeyManager', () => {
       expect(process.env.OPENAI_API_KEY).toBeUndefined();
     });
 
-    it('throws for unsupported auth type', () => {
+    it('falls back gracefully for unsupported auth type (no throw)', () => {
+      // Changed behaviour: unknown auth types fall back to OPENAI_API_KEY instead of throwing,
+      // so that future/custom providers don't crash the key manager.
       expect(() => {
         new ApiKeyManager('key', 'UNSUPPORTED_TYPE' as AuthType);
-      }).toThrow(/Multi-key not supported for auth type/);
+      }).not.toThrow();
     });
   });
 

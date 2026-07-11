@@ -13,6 +13,16 @@ const { mockConnect } = vi.hoisted(() => {
   };
 });
 
+// Mock pcmRecorder BEFORE any other imports load it transitively
+vi.mock('@renderer/services/speech/pcmRecorder', () => ({
+  createPcmRecorder: vi.fn(async () => ({
+    stream: {
+      getTracks: () => [{ stop: vi.fn() }],
+    } as unknown as MediaStream,
+    stop: vi.fn(async () => ({ pcm: new Uint8Array(0), sampleRate: 24000 })),
+  })),
+}));
+
 // Mock @google/genai BEFORE any other imports load it transitively
 vi.mock('@google/genai', () => {
   return {
@@ -78,6 +88,56 @@ describe('LiveVoiceManager State Machine & Permission & Credentials', () => {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
     } as any;
+
+    class MockAudioNode {
+      connect = vi.fn();
+      disconnect = vi.fn();
+    }
+    class MockAnalyserNode extends MockAudioNode {
+      fftSize = 128;
+      smoothingTimeConstant = 0.82;
+      getByteTimeDomainData = vi.fn((array: Uint8Array) => array.fill(128));
+    }
+    class MockGainNode extends MockAudioNode {
+      gain = { value: 1 };
+    }
+    class MockAudioBufferSourceNode extends MockAudioNode {
+      buffer = null;
+      start = vi.fn();
+      stop = vi.fn();
+    }
+    class MockAudioContext {
+      state = 'suspended';
+      currentTime = 0;
+      destination = {};
+      createGain() {
+        return new MockGainNode();
+      }
+      createAnalyser() {
+        return new MockAnalyserNode();
+      }
+      createMediaStreamSource() {
+        return new MockAudioNode();
+      }
+      createBuffer() {
+        return {
+          duration: 1,
+          getChannelData: () => new Float32Array(100),
+        };
+      }
+      createBufferSource() {
+        return new MockAudioBufferSourceNode();
+      }
+      resume = vi.fn(async function (this: any) {
+        this.state = 'running';
+      });
+      close = vi.fn(async function (this: any) {
+        this.state = 'closed';
+      });
+      setSinkId = vi.fn(async () => {});
+    }
+
+    (global as any).AudioContext = MockAudioContext;
   });
 
   afterEach(async () => {
@@ -212,6 +272,56 @@ describe('Voice Module — Stability Regression Tests', () => {
       removeEventListener: vi.fn(),
     } as any;
 
+    class MockAudioNode {
+      connect = vi.fn();
+      disconnect = vi.fn();
+    }
+    class MockAnalyserNode extends MockAudioNode {
+      fftSize = 128;
+      smoothingTimeConstant = 0.82;
+      getByteTimeDomainData = vi.fn((array: Uint8Array) => array.fill(128));
+    }
+    class MockGainNode extends MockAudioNode {
+      gain = { value: 1 };
+    }
+    class MockAudioBufferSourceNode extends MockAudioNode {
+      buffer = null;
+      start = vi.fn();
+      stop = vi.fn();
+    }
+    class MockAudioContext {
+      state = 'suspended';
+      currentTime = 0;
+      destination = {};
+      createGain() {
+        return new MockGainNode();
+      }
+      createAnalyser() {
+        return new MockAnalyserNode();
+      }
+      createMediaStreamSource() {
+        return new MockAudioNode();
+      }
+      createBuffer() {
+        return {
+          duration: 1,
+          getChannelData: () => new Float32Array(100),
+        };
+      }
+      createBufferSource() {
+        return new MockAudioBufferSourceNode();
+      }
+      resume = vi.fn(async function (this: any) {
+        this.state = 'running';
+      });
+      close = vi.fn(async function (this: any) {
+        this.state = 'closed';
+      });
+      setSinkId = vi.fn(async () => {});
+    }
+
+    (global as any).AudioContext = MockAudioContext;
+
     // Full singleton reset before each regression test
     LiveVoiceManager.destroy();
   });
@@ -280,7 +390,7 @@ describe('Voice Module — Stability Regression Tests', () => {
       () =>
         new Promise<any>((resolve) => {
           deferred.resolve = resolve;
-        }),
+        })
     );
 
     // Start the first connect and drain microtasks so the coroutine progresses

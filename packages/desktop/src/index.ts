@@ -357,6 +357,17 @@ function markBackendReady(backendPort: number, source: string): void {
   backendStartupFailed = false;
   backendStartupFailureInfo = null;
   (globalThis as typeof globalThis & { __backendStartupFailed?: boolean }).__backendStartupFailed = false;
+  if (!app.isPackaged) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const dir = path.resolve(process.cwd(), 'out');
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.resolve(dir, 'backend-port.txt'), String(backendPort), 'utf8');
+    } catch (e) {
+      console.error('[AURA] Failed to write backend port file:', e);
+    }
+  }
   void ensureAdminUserOnce(backendPort);
   scheduleBackendMigrations();
 }

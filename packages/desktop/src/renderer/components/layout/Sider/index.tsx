@@ -14,6 +14,7 @@ import siderStyles from './Sider.module.css';
 
 const WorkspaceGroupedHistory = React.lazy(() => import('@renderer/pages/conversation/GroupedHistory'));
 const SettingsSider = React.lazy(() => import('@renderer/pages/settings/components/SettingsSider'));
+const ProjectSiderSection = React.lazy(() => import('./ProjectSiderSection'));
 
 interface SiderProps {
   onSessionClick?: () => void;
@@ -193,6 +194,7 @@ const Sider: React.FC<SiderProps> = ({ onSessionClick, collapsed = false }) => {
                         siderTooltipProps={siderTooltipProps}
                         onSessionClick={onSessionClick}
                       />
+                      <ProjectSiderSection collapsed={collapsed} onSessionClick={onSessionClick} />
                     </>
                   }
                 />

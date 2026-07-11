@@ -276,6 +276,34 @@ export const useConversationActions = ({
     }
   }, [removeProjectTarget, removeConversation, t]);
 
+  const handleMoveToProject = useCallback(
+    async (conversation: TChatConversation, projectId: string) => {
+      try {
+        const success = await ipcBridge.conversation.update.invoke({
+          id: conversation.id,
+          updates: {
+            extra: {
+              project_id: projectId,
+            } as any,
+          } as any,
+          merge_extra: true,
+        });
+
+        if (success) {
+          await refreshConversationCache(conversation.id);
+          emitter.emit('chat.history.refresh');
+          Message.success(t('project.moveToProjectSuccess'));
+        } else {
+          Message.error(t('project.moveToProjectFailed'));
+        }
+      } catch (error) {
+        console.error('Failed to move conversation:', error);
+        Message.error(t('project.moveToProjectFailed'));
+      }
+    },
+    [t]
+  );
+
   return {
     renameModalVisible,
     renameModalName,
@@ -296,5 +324,6 @@ export const useConversationActions = ({
     removeProjectLoading,
     handleRemoveProjectCancel,
     handleRemoveProjectConfirm,
+    handleMoveToProject,
   };
 };

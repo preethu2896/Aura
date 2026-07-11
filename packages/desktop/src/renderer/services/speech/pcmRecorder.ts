@@ -141,8 +141,12 @@ registerProcessor('${PROCESSOR_NAME}', PcmCaptureProcessor);
  */
 export const createPcmRecorder = async (options: {
   onChunk: (pcm16Chunk: Uint8Array) => void;
+  deviceId?: string;
 }): Promise<PcmRecorderHandle> => {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const constraints: MediaStreamConstraints = {
+    audio: options.deviceId && options.deviceId !== 'default' ? { deviceId: { exact: options.deviceId } } : true,
+  };
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
   const releaseMic = () => stream.getTracks().forEach((track) => track.stop());
 
   // Request 24kHz directly; Chromium honors it, but some platforms ignore the

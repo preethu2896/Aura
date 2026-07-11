@@ -20,6 +20,8 @@ import { useTranslation } from 'react-i18next';
 import type { ConversationRowProps } from './types';
 import { isConversationPinned } from './utils/groupingHelpers';
 
+import { useProject } from '@/renderer/hooks/context/ProjectContext';
+
 const ConversationRow: React.FC<ConversationRowProps> = (props) => {
   const {
     conversation,
@@ -35,6 +37,7 @@ const ConversationRow: React.FC<ConversationRowProps> = (props) => {
   } = props;
   const logos = useAgentLogos();
   const layout = useLayoutContext();
+  const { projects } = useProject();
   const isMobile = layout?.isMobile ?? false;
   const {
     onToggleChecked,
@@ -46,6 +49,7 @@ const ConversationRow: React.FC<ConversationRowProps> = (props) => {
     onExport,
     onTogglePin,
     getJobStatus,
+    onMoveToProject,
   } = props;
   const { t } = useTranslation();
   const { info: assistantInfo } = usePresetAssistantInfo(conversation);
@@ -223,6 +227,11 @@ const ConversationRow: React.FC<ConversationRowProps> = (props) => {
                     }
                     if (key === 'delete') {
                       onDelete(conversation.id);
+                      return;
+                    }
+                    if (key.startsWith('move-to:')) {
+                      const targetProjId = key.substring(8);
+                      onMoveToProject?.(conversation, targetProjId);
                     }
                   }}
                 >
@@ -245,6 +254,23 @@ const ConversationRow: React.FC<ConversationRowProps> = (props) => {
                         <span>{t('conversation.history.export')}</span>
                       </div>
                     </Menu.Item>
+                  )}
+                  {projects.length > 0 && onMoveToProject && (
+                    <Menu.SubMenu
+                      key='move-to-project'
+                      title={
+                        <div className='flex items-center gap-8px'>
+                          <Export theme='outline' size='14' />
+                          <span>{t('project.moveToProject')}</span>
+                        </div>
+                      }
+                    >
+                      {projects.map((p) => (
+                        <Menu.Item key={`move-to:${p.id}`}>
+                          <span>{p.name}</span>
+                        </Menu.Item>
+                      ))}
+                    </Menu.SubMenu>
                   )}
                   <Menu.Item key='delete'>
                     <div className='flex items-center gap-8px text-[rgb(var(--warning-6))]'>

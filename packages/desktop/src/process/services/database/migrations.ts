@@ -1219,6 +1219,169 @@ const migration_v26: IMigration = {
 };
 
 /**
+ * Migration v26 -> v27: Add Projects feature
+ *
+ * Creates three new tables:
+ *   - projects:       Project entities with provider config and settings
+ *   - project_files:  Files attached to a project (stored on disk)
+ *   - project_memory: Scoped memory records per project
+ *
+ * Adds project_id (nullable FK) to conversations for assignment.
+ * Seeds the built-in General project (id: 00000000-0000-0000-0000-000000000001).
+ *
+ * Schema is designed for future cloud sync:
+ *   - Stable UUID PKs
+ *   - No hardcoded user assumptions beyond the existing user_id FK
+ *   - created_at / updated_at on every table
+ *   - Nullable extension columns (checksum, indexed, embedding_status) for future features
+ */
+const migration_v27: IMigration = {
+  version: 27,
+  name: 'Add Projects feature',
+  up: (db) => {
+    // -----------------------------------------------------------------------
+    // projects table
+    // -----------------------------------------------------------------------
+    db.exec(`CREATE TABLE IF NOT EXISTS projects (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      instructions TEXT,
+      color TEXT,
+      icon TEXT,
+      pinned INTEGER NOT NULL DEFAULT 0,
+      pinned_at INTEGER,
+      archived INTEGER NOT NULL DEFAULT 0,
+      archived_at INTEGER,
+      -- provider_config stores TProjectProviderConfig as JSON:
+      -- { provider, temperature, reasoning_mode, tts_voice, stt_language, extra }
+      provider_config TEXT,
+      system_prompt TEXT,
+      -- JSON arrays of IDs
+      enabled_mcp_server_ids TEXT NOT NULL DEFAULT '[]',
+      enabled_agent_ids TEXT NOT NULL DEFAULT '[]',
+      sort_order INTEGER,
+      is_default INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+    db.exec('CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_projects_is_default ON projects(is_default)');
+
+    // -----------------------------------------------------------------------
+    // project_files table
+    // Physical location: workDir/projects/<project_id>/files/
+    // -----------------------------------------------------------------------
+    db.exec(`CREATE TABLE IF NOT EXISTS project_files (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      path TEXT NOT NULL,
+      size INTEGER NOT NULL DEFAULT 0,
+      mime_type TEXT,
+      -- Future integrity / search / embedding columns (NULL until used)
+      checksum TEXT,
+      indexed INTEGER,
+      embedding_status TEXT,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )`);
+    db.exec('CREATE INDEX IF NOT EXISTS idx_project_files_project ON project_files(project_id)');
+
+    // -----------------------------------------------------------------------
+    // project_memory table
+    // Scoped memory — ON DELETE CASCADE ensures no cross-project leakage
+    // -----------------------------------------------------------------------
+    db.exec(`CREATE TABLE IF NOT EXISTS project_memory (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      -- Optional metadata for future intelligent retrieval
+      tags TEXT,          -- JSON array of strings
+      importance REAL,    -- 0.0-1.0
+      source TEXT,        -- 'user' | 'agent' | 'import' | etc.
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )`);
+    db.exec('CREATE INDEX IF NOT EXISTS idx_project_memory_project ON project_memory(project_id)');
+
+    // -----------------------------------------------------------------------
+    // Add project_id FK to conversations
+    // NULL = conversation not yet assigned; seeded to General in down step
+    // -----------------------------------------------------------------------
+    db.exec('ALTER TABLE conversations ADD COLUMN project_id TEXT REFERENCES projects(id)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_conversations_project_id ON conversations(project_id)');
+
+    // -----------------------------------------------------------------------
+    // Seed the built-in General project
+    // ID is a stable UUID that never changes (used as DEFAULT_PROJECT_ID)
+    // -----------------------------------------------------------------------
+    const now = Date.now();
+    // Get the first user's id (single-user mode) for the FK
+    const firstUser = db.prepare('SELECT id FROM users ORDER BY created_at ASC LIMIT 1').get() as
+      | { id: string }
+      | undefined;
+    const userId = firstUser?.id ?? 'local';
+
+    db.prepare(
+      `INSERT OR IGNORE INTO projects
+         (id, user_id, name, is_default, pinned, archived,
+          enabled_mcp_server_ids, enabled_agent_ids, created_at, updated_at)
+       VALUES (?, ?, 'General', 1, 0, 0, '[]', '[]', ?, ?)`
+    ).run('00000000-0000-0000-0000-000000000001', userId, now, now);
+
+    // Assign all existing conversations to the General project
+    db.exec(`UPDATE conversations SET project_id = '00000000-0000-0000-0000-000000000001' WHERE project_id IS NULL`);
+
+    console.log('[Migration v27] Added Projects tables and seeded General project');
+  },
+  down: (db) => {
+    // Remove project_id from conversations
+    // SQLite does not support DROP COLUMN before 3.35.0; recreate the table.
+    db.exec(`CREATE TABLE IF NOT EXISTS conversations_backup AS SELECT * FROM conversations`);
+    db.exec('DROP TABLE IF EXISTS conversations');
+    db.exec(`CREATE TABLE IF NOT EXISTS conversations (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      extra TEXT NOT NULL DEFAULT '{}',
+      model TEXT,
+      status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'running', 'finished')),
+      source TEXT,
+      channel_chat_id TEXT,
+      pinned INTEGER NOT NULL DEFAULT 0,
+      pinned_at INTEGER,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+    db.exec(`INSERT INTO conversations SELECT
+      id, user_id, name, type, extra, model, status, source,
+      channel_chat_id, pinned, pinned_at, created_at, updated_at
+      FROM conversations_backup`);
+    db.exec('DROP TABLE IF EXISTS conversations_backup');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_conversations_updated_at ON conversations(updated_at)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_conversations_type ON conversations(type)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_conversations_user_updated ON conversations(user_id, updated_at DESC)');
+
+    // Drop new tables in reverse dependency order
+    db.exec('DROP TABLE IF EXISTS project_memory');
+    db.exec('DROP TABLE IF EXISTS project_files');
+    db.exec('DROP TABLE IF EXISTS projects');
+
+    console.log('[Migration v27] Rolled back: Removed Projects tables');
+  },
+};
+
+/**
  * All migrations in order
  */
 // prettier-ignore
@@ -1227,7 +1390,7 @@ export const ALL_MIGRATIONS: IMigration[] = [
   migration_v7, migration_v8, migration_v9, migration_v10, migration_v11, migration_v12,
   migration_v13, migration_v14, migration_v15, migration_v16, migration_v17, migration_v18,
   migration_v19, migration_v20, migration_v21, migration_v22, migration_v23, migration_v24,
-  migration_v25, migration_v26,
+  migration_v25, migration_v26, migration_v27,
 ];
 
 /**

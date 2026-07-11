@@ -1,8 +1,14 @@
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
 import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
+
+console.log('Vite Config loading. process.cwd():', process.cwd());
+let apiProxyOpts: any = null;
+let loginProxyOpts: any = null;
+let logoutProxyOpts: any = null;
+let wsProxyOpts: any = null;
 import UnoCSS from 'unocss/vite';
 import unoConfig from '../../uno.config.ts';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -203,6 +209,38 @@ export default defineConfig(({ mode }) => {
         hmr: {
           host: 'localhost',
         },
+        proxy: {
+          '/api': {
+            target: 'http://127.0.0.1:13400',
+            changeOrigin: true,
+            ws: true,
+            configure: (proxy, options) => {
+              apiProxyOpts = options;
+            },
+          },
+          '/login': {
+            target: 'http://127.0.0.1:13400',
+            changeOrigin: true,
+            configure: (proxy, options) => {
+              loginProxyOpts = options;
+            },
+          },
+          '/logout': {
+            target: 'http://127.0.0.1:13400',
+            changeOrigin: true,
+            configure: (proxy, options) => {
+              logoutProxyOpts = options;
+            },
+          },
+          '/ws': {
+            target: 'ws://127.0.0.1:13400',
+            changeOrigin: true,
+            ws: true,
+            configure: (proxy, options) => {
+              wsProxyOpts = options;
+            },
+          },
+        },
       },
       resolve: {
         alias: {
@@ -238,6 +276,30 @@ export default defineConfig(({ mode }) => {
         UnoCSS(unoConfig),
         iconParkPlugin(),
         ...(enableSentrySourceMaps ? [sentryVitePlugin(sentryPluginOptions)] : []),
+        {
+          name: 'dynamic-proxy-target',
+          configureServer(server) {
+            server.middlewares.use((req, res, next) => {
+              try {
+                const portPath = resolve(process.cwd(), 'out/backend-port.txt');
+                if (existsSync(portPath)) {
+                  const port = readFileSync(portPath, 'utf8').trim();
+                  if (port && /^\d+$/.test(port)) {
+                    const targetHost = `http://127.0.0.1:${port}`;
+                    const targetWs = `ws://127.0.0.1:${port}`;
+                    if (apiProxyOpts) apiProxyOpts.target = targetHost;
+                    if (loginProxyOpts) loginProxyOpts.target = targetHost;
+                    if (logoutProxyOpts) logoutProxyOpts.target = targetHost;
+                    if (wsProxyOpts) wsProxyOpts.target = targetWs;
+                  }
+                }
+              } catch (e) {
+                console.error('[VITE DYNAMIC PROXY PLUGIN ERROR]', e);
+              }
+              next();
+            });
+          },
+        },
       ],
       build: {
         target: 'es2022',

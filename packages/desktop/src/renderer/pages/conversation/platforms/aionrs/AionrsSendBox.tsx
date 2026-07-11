@@ -24,6 +24,7 @@ import { useLayoutContext } from '@/renderer/hooks/context/LayoutContext';
 import { useAutoTitle } from '@/renderer/hooks/chat/useAutoTitle';
 import { getSendBoxDraftHook, type FileOrFolderItem } from '@/renderer/hooks/chat/useSendBoxDraft';
 import { createSetUploadFile, useSendBoxFiles } from '@/renderer/hooks/chat/useSendBoxFiles';
+import type { FileMetadata } from '@/renderer/services/FileService';
 import { useSlashCommands } from '@/renderer/hooks/chat/useSlashCommands';
 import { useOpenFileSelector } from '@/renderer/hooks/file/useOpenFileSelector';
 import { useLatestRef } from '@/renderer/hooks/ui/useLatestRef';
@@ -38,6 +39,8 @@ import { getConversationRuntimeWorkspaceErrorMessage } from '@/renderer/pages/co
 import { getChatSurfaceWidthClass } from '@/renderer/pages/conversation/utils/chatSurfaceWidth';
 import { ensureConversationRuntime } from '@/renderer/pages/conversation/utils/ensureConversationRuntime';
 import { usePreviewContext } from '@/renderer/pages/conversation/Preview';
+import { resolveModelMetadata } from '@/common/utils/modelMetadataRegistry';
+import type { ModelMetadata } from '@/common/types/provider/modelMetadata';
 import { useTeamPermission } from '@/renderer/pages/team/hooks/TeamPermissionContext';
 import type { TeamSendBoxRuntime } from '@/renderer/pages/team/components/teamSendRuntime';
 import { allSupportedExts } from '@/renderer/services/FileService';
@@ -136,9 +139,14 @@ const AionrsSendBox: React.FC<{
       name,
       status: 'loaded',
     }));
+  const { current_model } = modelSelection;
   const { t } = useTranslation();
   const { checkAndUpdateTitle } = useAutoTitle();
-  const { current_model } = modelSelection;
+  const activeModelMetadata = useMemo(() => {
+    const platform = current_model?.platform || current_model?.id || '';
+    if (!platform || !current_model?.use_model) return undefined;
+    return resolveModelMetadata(platform, current_model.use_model);
+  }, [current_model?.platform, current_model?.id, current_model?.use_model]);
   const teamPermission = useTeamPermission();
   const propagateMode = teamPermission?.propagateMode;
 
@@ -243,12 +251,25 @@ const AionrsSendBox: React.FC<{
   );
 
   // Shared file handling logic
-  const { handleFilesAdded, clearFiles } = useSendBoxFiles({
+  const { handleFilesAdded: originalHandleFilesAdded, clearFiles } = useSendBoxFiles({
     atPath,
     uploadFile,
     setAtPath,
     setUploadFile,
   });
+
+  const handleFilesAdded = useCallback(
+    (files: FileMetadata[]) => {
+      if (activeModelMetadata && !activeModelMetadata.supportsVision && !activeModelMetadata.supportsImages) {
+        Message.warning(
+          t('conversation.chat.visionNotSupported', { defaultValue: 'Vision is not supported by the active model' })
+        );
+        return;
+      }
+      originalHandleFilesAdded(files);
+    },
+    [activeModelMetadata, originalHandleFilesAdded, t]
+  );
 
   const executeCommand = useCallback(
     async ({ input, files }: Pick<ConversationCommandQueueItem, 'input' | 'files'>) => {
@@ -654,12 +675,15 @@ const AionrsSendBox: React.FC<{
         supportedExts={allSupportedExts}
         defaultMultiLine={!isMobile}
         lockMultiLine={!isMobile}
+        activeModelMetadata={activeModelMetadata}
         tools={
-          <FileAttachButton
-            openFileSelector={openFileSelector}
-            onLocalFilesAdded={handleFilesAdded}
-            loadedMcpStatuses={loadedMcpStatuses}
-          />
+          !activeModelMetadata || activeModelMetadata.supportsVision || activeModelMetadata.supportsImages ? (
+            <FileAttachButton
+              openFileSelector={openFileSelector}
+              onLocalFilesAdded={handleFilesAdded}
+              loadedMcpStatuses={loadedMcpStatuses}
+            />
+          ) : null
         }
         rightTools={
           <div className='flex items-center gap-8px min-w-0'>

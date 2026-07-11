@@ -10,6 +10,8 @@ import type { LiveVoiceState, LiveVoiceErrorType, LiveVoiceSession } from './typ
 import { GeminiLiveProvider } from './providers/GeminiLiveProvider';
 import type { VoiceConfig } from '@/common/types/provider/voice';
 import { DEFAULT_VOICE_CONFIG } from '@/common/types/provider/voice';
+import { createPcmRecorder } from '@renderer/services/speech/pcmRecorder';
+import type { PcmRecorderHandle } from '@renderer/services/speech/pcmRecorder';
 
 type StateChangeListener = (state: LiveVoiceState) => void;
 type ErrorListener = (err: { type: LiveVoiceErrorType; message: string }) => void;
@@ -21,12 +23,103 @@ type ProviderInfo = {
   enabled?: boolean;
 };
 
+class AudioStreamPlayer {
+  private ctx: AudioContext;
+  private nextPlayTime = 0;
+  private activeSources = new Set<AudioBufferSourceNode>();
+  private gainNode: GainNode | null = null;
+  private outputAnalyser: AnalyserNode | null = null;
+  private speakerId = 'default';
+
+  constructor(ctx: AudioContext) {
+    this.ctx = ctx;
+    this.gainNode = this.ctx.createGain();
+    this.outputAnalyser = this.ctx.createAnalyser();
+    this.outputAnalyser.fftSize = 128;
+    this.outputAnalyser.smoothingTimeConstant = 0.82;
+
+    this.gainNode.connect(this.outputAnalyser);
+    this.outputAnalyser.connect(this.ctx.destination);
+  }
+
+  async setSpeaker(speakerId: string) {
+    this.speakerId = speakerId;
+    if (typeof (this.ctx as any).setSinkId === 'function') {
+      try {
+        await (this.ctx as any).setSinkId(speakerId === 'default' ? '' : speakerId);
+      } catch (e) {
+        console.warn('Failed to set output device:', e);
+      }
+    }
+  }
+
+  getAnalyser(): AnalyserNode {
+    return this.outputAnalyser!;
+  }
+
+  async playChunk(pcmBytes: Uint8Array, sampleRate = 24000) {
+    if (this.ctx.state === 'suspended') {
+      await this.ctx.resume();
+    }
+
+    const int16 = new Int16Array(pcmBytes.buffer, pcmBytes.byteOffset, pcmBytes.byteLength / 2);
+    const float32 = new Float32Array(int16.length);
+    for (let i = 0; i < int16.length; i++) {
+      float32[i] = int16[i] / 32768.0;
+    }
+
+    const audioBuffer = this.ctx.createBuffer(1, float32.length, sampleRate);
+    audioBuffer.getChannelData(0).set(float32);
+
+    const now = this.ctx.currentTime;
+    let startTime = this.nextPlayTime;
+    if (startTime < now) {
+      startTime = now + 0.03; // small 30ms lookahead to prevent gap
+    }
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(this.gainNode!);
+    source.start(startTime);
+
+    this.activeSources.add(source);
+    source.onended = () => {
+      this.activeSources.delete(source);
+      source.disconnect();
+    };
+
+    this.nextPlayTime = startTime + audioBuffer.duration;
+  }
+
+  stop() {
+    this.activeSources.forEach((src) => {
+      try {
+        src.stop();
+      } catch {}
+      src.disconnect();
+    });
+    this.activeSources.clear();
+    this.nextPlayTime = 0;
+  }
+
+  destroy() {
+    this.stop();
+    if (this.gainNode) {
+      this.gainNode.disconnect();
+    }
+    if (this.outputAnalyser) {
+      this.outputAnalyser.disconnect();
+    }
+  }
+}
+
 class LiveVoiceManagerImpl {
   private state: LiveVoiceState = 'disconnected';
   private errorType: LiveVoiceErrorType | null = null;
   private session: LiveVoiceSession | null = null;
   private stateListeners = new Set<StateChangeListener>();
   private errorListeners = new Set<ErrorListener>();
+  private volumeListeners = new Set<(vol: number) => void>();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 3;
   // H5: use the correct renderer-process timer type instead of `any`
@@ -37,6 +130,33 @@ class LiveVoiceManagerImpl {
   // C2: explicit flag so the internal reconnect timer can always call connect()
   // while external concurrent callers are blocked.
   private isConnecting = false;
+
+  // Single shared AudioContext for the manager lifecycle
+  private audioContext: AudioContext | null = null;
+  private player: AudioStreamPlayer | null = null;
+  private recorder: PcmRecorderHandle | null = null;
+
+  // Real-time volume/VAD analysis
+  private volumeInterval: ReturnType<typeof setInterval> | null = null;
+  private micAnalyser: AnalyserNode | null = null;
+  private micSourceNode: MediaStreamAudioSourceNode | null = null;
+  private currentVolume = 0.015;
+
+  // Session resumption
+  private lastResumptionHandle: string | null = null;
+  private overrides: { tts_voice?: string; stt_language?: string } | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('aura:voice-config-changed', () => {
+        void this.handleConfigChanged();
+      });
+    }
+  }
+
+  setOverrides(overrides: { tts_voice?: string; stt_language?: string } | null) {
+    this.overrides = overrides;
+  }
 
   getState(): LiveVoiceState {
     return this.state;
@@ -58,6 +178,17 @@ class LiveVoiceManagerImpl {
     return () => {
       this.errorListeners.delete(listener);
     };
+  }
+
+  subscribeVolume(listener: (vol: number) => void): () => void {
+    this.volumeListeners.add(listener);
+    return () => {
+      this.volumeListeners.delete(listener);
+    };
+  }
+
+  getCurrentVolume(): number {
+    return this.currentVolume;
   }
 
   private setState(state: LiveVoiceState) {
@@ -84,6 +215,96 @@ class LiveVoiceManagerImpl {
     }
   }
 
+  private initAudioContext(sampleRate = 24000) {
+    if (!this.audioContext) {
+      const AudioContextCtor =
+        typeof AudioContext !== 'undefined'
+          ? AudioContext
+          : typeof window !== 'undefined'
+            ? (window as any).webkitAudioContext
+            : undefined;
+      if (AudioContextCtor) {
+        this.audioContext = new AudioContextCtor({ sampleRate });
+      } else {
+        throw new Error('AudioContext not supported');
+      }
+      this.player = new AudioStreamPlayer(this.audioContext!);
+    }
+  }
+
+  private setupVolumeAnalysis(stream: MediaStream) {
+    if (!this.audioContext) return;
+    try {
+      this.cleanupMicAnalysis();
+
+      this.micAnalyser = this.audioContext.createAnalyser();
+      this.micAnalyser.fftSize = 128;
+      this.micAnalyser.smoothingTimeConstant = 0.82;
+
+      this.micSourceNode = this.audioContext.createMediaStreamSource(stream);
+      this.micSourceNode.connect(this.micAnalyser);
+
+      const analyserData = new Uint8Array(this.micAnalyser.fftSize);
+
+      this.volumeInterval = setInterval(() => {
+        let micRms = 0;
+        let outputRms = 0;
+        const threshold = this.activeConfig.autoInterruptThreshold ?? 0.04;
+
+        // 1. Measure Mic Input Volume & Check VAD Interruption
+        if ((this.state === 'listening' || this.state === 'speaking') && this.micAnalyser) {
+          this.micAnalyser.getByteTimeDomainData(analyserData);
+          let sum = 0;
+          for (const sample of analyserData) {
+            const normalized = (sample - 128) / 128;
+            sum += normalized * normalized;
+          }
+          micRms = Math.sqrt(sum / analyserData.length);
+
+          if (this.state === 'speaking' && micRms > threshold && this.activeConfig.autoInterrupt) {
+            console.log('Local speech interruption detected, stopping playback...');
+            if (this.player) {
+              this.player.stop();
+            }
+            this.setState('listening');
+          }
+        }
+
+        // 2. Measure Speaker Output Volume
+        if (this.state === 'speaking' && this.player) {
+          const outAnalyser = this.player.getAnalyser();
+          outAnalyser.getByteTimeDomainData(analyserData);
+          let sum = 0;
+          for (const sample of analyserData) {
+            const normalized = (sample - 128) / 128;
+            sum += normalized * normalized;
+          }
+          outputRms = Math.sqrt(sum / analyserData.length);
+        }
+
+        // Scale and emit volume
+        const activeRms = this.state === 'speaking' ? outputRms : micRms;
+        const scaled = Math.max(0.015, Math.min(1.0, activeRms * 5.6));
+        this.currentVolume = scaled;
+        this.volumeListeners.forEach((listener) => listener(scaled));
+      }, 50);
+    } catch (e) {
+      console.warn('Failed to set up volume analysis:', e);
+    }
+  }
+
+  private cleanupMicAnalysis() {
+    if (this.volumeInterval) {
+      clearInterval(this.volumeInterval);
+      this.volumeInterval = null;
+    }
+    if (this.micSourceNode) {
+      this.micSourceNode.disconnect();
+      this.micSourceNode = null;
+    }
+    this.micAnalyser = null;
+  }
+
   async connect(): Promise<void> {
     // C2: re-entrancy guard — if an external caller fires connect() while a
     // connect() coroutine is already in-flight, silently ignore the duplicate.
@@ -105,6 +326,9 @@ class LiveVoiceManagerImpl {
     } catch (e) {
       console.warn('Failed to load voice config settings, using defaults', e);
     }
+    if (this.overrides?.tts_voice) {
+      config = { ...config, voiceName: this.overrides.tts_voice };
+    }
     this.activeConfig = config;
 
     // H3: request mic permission only on the first connect; cache the result so
@@ -116,6 +340,7 @@ class LiveVoiceManagerImpl {
         this.micPermissionGranted = true;
       } catch (e) {
         this.setError('permission-denied', 'Microphone access denied');
+        this.isConnecting = false;
         return;
       }
     }
@@ -126,6 +351,7 @@ class LiveVoiceManagerImpl {
       providers = (await ipcBridge.mode.listProviders.invoke()) || [];
     } catch (e) {
       this.setError('network', 'Failed to retrieve providers config');
+      this.isConnecting = false;
       return;
     }
 
@@ -133,11 +359,25 @@ class LiveVoiceManagerImpl {
     const apiKey = geminiProvider?.api_key || '';
     if (!apiKey) {
       this.setError('no-api-key', 'Gemini API key is not configured');
+      this.isConnecting = false;
       return;
     }
 
     const provider = new GeminiLiveProvider();
     const model = config.liveModel || 'gemini-2.0-flash';
+    const sampleRate = provider.sampleRate || 24000;
+
+    try {
+      this.initAudioContext(sampleRate);
+    } catch (e) {
+      this.setError('unknown', 'Failed to initialize AudioContext');
+      this.isConnecting = false;
+      return;
+    }
+
+    if (this.player && config.speakerId) {
+      void this.player.setSpeaker(config.speakerId);
+    }
 
     try {
       this.session = await provider.connect({
@@ -149,10 +389,24 @@ class LiveVoiceManagerImpl {
           // M6: forward the user's device selection so the provider can act on it
           microphoneId: config.microphoneId,
         },
+        voiceName: config.voiceName || 'Aoede',
+        sessionResumptionHandle: this.lastResumptionHandle || undefined,
       });
 
       this.session.on('stateChange', (s: LiveVoiceState) => {
         this.setState(s);
+      });
+
+      this.session.on('audio', (chunk: Uint8Array) => {
+        if (this.player) {
+          this.player.playChunk(chunk, sampleRate).catch((e) => console.error(e));
+        }
+      });
+
+      this.session.on('resumptionUpdate', (update: any) => {
+        if (update.resumable && update.newHandle) {
+          this.lastResumptionHandle = update.newHandle;
+        }
       });
 
       this.session.on('error', (err: { type: LiveVoiceErrorType; message: string }) => {
@@ -164,7 +418,33 @@ class LiveVoiceManagerImpl {
       });
 
       this.reconnectAttempts = 0;
+
+      this.recorder = await createPcmRecorder({
+        deviceId: config.microphoneId,
+        onChunk: (chunk) => {
+          if (
+            this.session &&
+            (this.state === 'listening' ||
+              this.state === 'speaking' ||
+              this.state === 'thinking' ||
+              this.state === 'executing')
+          ) {
+            this.session.sendAudioChunk(chunk).catch((e) => {
+              console.error('Failed to send audio chunk:', e);
+            });
+          }
+        },
+      });
+
+      this.setupVolumeAnalysis(this.recorder.stream);
     } catch (error: unknown) {
+      if (this.lastResumptionHandle) {
+        console.warn('Session resumption failed, retrying with fresh session...', error);
+        this.lastResumptionHandle = null;
+        this.isConnecting = false;
+        return this.connect();
+      }
+
       this.handleSessionError({
         type: 'connection-failed',
         message: error instanceof Error ? error.message : 'Connection failed',
@@ -181,12 +461,25 @@ class LiveVoiceManagerImpl {
     }
     this.reconnectAttempts = 0;
     this.isConnecting = false;
+    this.lastResumptionHandle = null;
 
     // M3: set state to 'disconnected' BEFORE calling s.close().  If the SDK fires
     // the onclose callback synchronously inside close(), handleSessionClose() will
     // see state === 'disconnected' and exit immediately without scheduling a reconnect.
     this.setState('disconnected');
     this.errorType = null;
+
+    this.cleanupMicAnalysis();
+
+    if (this.recorder) {
+      const r = this.recorder;
+      this.recorder = null;
+      await r.stop();
+    }
+
+    if (this.player) {
+      this.player.stop();
+    }
 
     if (this.session) {
       const s = this.session;
@@ -205,17 +498,35 @@ class LiveVoiceManagerImpl {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    if (this.session) {
-      void this.session.close();
-      this.session = null;
-    }
-    this.stateListeners.clear();
-    this.errorListeners.clear();
     this.state = 'disconnected';
     this.errorType = null;
     this.reconnectAttempts = 0;
     this.micPermissionGranted = false;
     this.isConnecting = false;
+    this.lastResumptionHandle = null;
+
+    this.cleanupMicAnalysis();
+
+    if (this.recorder) {
+      void this.recorder.stop();
+      this.recorder = null;
+    }
+    if (this.player) {
+      this.player.destroy();
+      this.player = null;
+    }
+    if (this.audioContext) {
+      void this.audioContext.close();
+      this.audioContext = null;
+    }
+    if (this.session) {
+      const s = this.session;
+      this.session = null;
+      void s.close();
+    }
+    this.stateListeners.clear();
+    this.errorListeners.clear();
+    this.volumeListeners.clear();
   }
 
   private handleSessionError(err: { type: LiveVoiceErrorType; message: string }) {
@@ -258,6 +569,57 @@ class LiveVoiceManagerImpl {
         console.error('Reconnection attempt failed:', err);
       });
     }, 2000 * this.reconnectAttempts);
+  }
+
+  private async handleConfigChanged() {
+    let config: VoiceConfig = DEFAULT_VOICE_CONFIG;
+    try {
+      const stored = await getClientBusinessSetting('tools.voice');
+      if (stored) {
+        config = { ...DEFAULT_VOICE_CONFIG, ...stored };
+      }
+    } catch (e) {
+      console.warn('Failed to load voice config on change', e);
+      return;
+    }
+
+    const prevMic = this.activeConfig.microphoneId;
+    const prevSpeaker = this.activeConfig.speakerId;
+    this.activeConfig = config;
+
+    if (config.speakerId !== prevSpeaker && this.player) {
+      await this.player.setSpeaker(config.speakerId);
+    }
+
+    if (config.microphoneId !== prevMic && this.session && this.recorder) {
+      console.log('Hot-switching microphone...');
+      const oldRecorder = this.recorder;
+      this.recorder = null;
+      await oldRecorder.stop();
+
+      try {
+        this.recorder = await createPcmRecorder({
+          deviceId: config.microphoneId,
+          onChunk: (chunk) => {
+            if (
+              this.session &&
+              (this.state === 'listening' ||
+                this.state === 'speaking' ||
+                this.state === 'thinking' ||
+                this.state === 'executing')
+            ) {
+              this.session.sendAudioChunk(chunk).catch((e) => {
+                console.error('Failed to send audio chunk:', e);
+              });
+            }
+          },
+        });
+        this.setupVolumeAnalysis(this.recorder.stream);
+      } catch (err) {
+        console.error('Failed to hot-switch microphone:', err);
+        this.setError('permission-denied', 'Microphone access failed');
+      }
+    }
   }
 }
 

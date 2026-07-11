@@ -6,6 +6,7 @@
 
 import type { SpeechToTextConfig } from '@/common/types/provider/speech';
 import type { Theme } from '@/common/theme/types';
+import type { ModelMetadata } from '@/common/types/provider/modelMetadata';
 import { storage } from '@office-ai/platform';
 
 // 系统配置存储
@@ -218,6 +219,8 @@ export type TChatConversation =
           is_health_check?: boolean;
           /** Cron job ID that spawned this conversation */
           cron_job_id?: string;
+          /** Project this conversation belongs to */
+          project_id?: string;
         }
       >,
       'model'
@@ -248,6 +251,8 @@ export type TChatConversation =
           is_health_check?: boolean;
           /** Cron job ID that spawned this conversation */
           cron_job_id?: string;
+          /** Project this conversation belongs to */
+          project_id?: string;
         }
       >,
       'model'
@@ -294,6 +299,8 @@ export type TChatConversation =
           is_health_check?: boolean;
           /** Cron job ID that spawned this conversation */
           cron_job_id?: string;
+          /** Project this conversation belongs to */
+          project_id?: string;
         }
       >,
       'model'
@@ -318,6 +325,8 @@ export type TChatConversation =
           /** Legacy marker for pre-provider-probe health-check conversations */
           is_health_check?: boolean;
           cron_job_id?: string;
+          /** Project this conversation belongs to */
+          project_id?: string;
           // Other legacy-only keys (session_mode, preset_rules, etc.)
           // deliberately omitted — they're not read by the renderer.
         }
@@ -343,6 +352,8 @@ export type TChatConversation =
           is_health_check?: boolean;
           /** Cron job ID that spawned this conversation */
           cron_job_id?: string;
+          /** Project this conversation belongs to */
+          project_id?: string;
         }
       >,
       'model'
@@ -370,6 +381,8 @@ export type TChatConversation =
           is_health_check?: boolean;
           /** Cron job ID that spawned this conversation */
           cron_job_id?: string;
+          /** Project this conversation belongs to */
+          project_id?: string;
         }
       >,
       'model'
@@ -411,8 +424,13 @@ export type TChatConversation =
         last_token_usage?: TokenUsageData;
         /** Cron job ID that spawned this conversation */
         cron_job_id?: string;
+        /** Project this conversation belongs to */
+        project_id?: string;
       }
     >;
+
+/** Stable UUID for the built-in General project — never changes */
+export const DEFAULT_PROJECT_ID = '00000000-0000-0000-0000-000000000001';
 
 export type IChatConversationRefer = {
   'chat.history': TChatConversation[];
@@ -444,6 +462,7 @@ export interface IProvider {
   base_url: string;
   api_key: string;
   models: string[];
+  modelMetadataList?: ModelMetadata[];
   /**
    * 模型能力标签列表。打了标签就是支持，没打就是不支持
    */

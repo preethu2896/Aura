@@ -33,6 +33,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
 import styles from './index.module.css';
+import { useProject } from '@/renderer/hooks/context/ProjectContext';
 
 const GuidPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -40,6 +41,8 @@ const GuidPage: React.FC = () => {
   const location = useLocation();
   const guidContainerRef = useRef<HTMLDivElement>(null);
   const { activeBorderColor, inactiveBorderColor, activeShadow } = useInputFocusRing();
+
+  const { activeProjectId } = useProject();
 
   const localeKey = resolveLocaleKey(i18n.language);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -187,6 +190,7 @@ const GuidPage: React.FC = () => {
     navigate,
     t,
     localeKey,
+    activeProjectId,
   });
 
   // --- Coordinated handlers (depend on multiple hooks) ---

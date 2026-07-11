@@ -179,19 +179,21 @@ export async function httpRequest<T>(
   const url = `${getBaseUrl()}${path}`;
   const headers: Record<string, string> = {};
 
-  if (body !== undefined) {
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+
+  if (body !== undefined && !isFormData) {
     headers['Content-Type'] = 'application/json';
   }
 
   console.debug(
     `[httpBridge] ${method} ${path}`,
-    body !== undefined ? JSON.stringify(redactForLog(body)).slice(0, 500) : '(no body)'
+    body !== undefined ? (isFormData ? '(FormData)' : JSON.stringify(redactForLog(body)).slice(0, 500)) : '(no body)'
   );
 
   const response = await fetch(url, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: isFormData ? (body as any) : body !== undefined ? JSON.stringify(body) : undefined,
   });
 
   if (!response.ok) {

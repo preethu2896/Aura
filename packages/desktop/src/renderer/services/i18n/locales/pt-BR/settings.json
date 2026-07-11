@@ -600,7 +600,7 @@
   "mcpAuthenticated": "Autenticado",
   "mcpDisconnected": "Desconectado",
   "mcpError": "Erro",
-  "mcpErrorNodeCommandNotFound": "Não foi possível preparar o comando {{command}}. O AionCore normalmente provisiona automaticamente o runtime Node gerenciado. Tente novamente o teste de conexão, verifique os logs do backend se ainda falhar ou configure este servidor MCP para usar um caminho de comando absoluto.",
+  "mcpErrorNodeCommandNotFound": "Não foi possível preparar o comando {{command}}. O AURA Core normalmente provisiona automaticamente o runtime Node gerenciado. Tente novamente o teste de conexão, verifique os logs do backend se ainda falhar ou configure este servidor MCP para usar um caminho de comando absoluto.",
   "mcpErrorBunCommandNotFound": "O comando {{command}} não foi encontrado. Instale o Bun (que inclui bun/bunx), reinicie o AURA ou configure este servidor MCP para usar um caminho de comando absoluto.",
   "mcpErrorUvCommandNotFound": "O comando {{command}} não foi encontrado. Instale o uv, reinicie o AURA ou configure este servidor MCP para usar um caminho de comando absoluto.",
   "mcpErrorPythonCommandNotFound": "O comando {{command}} não foi encontrado. Instale o Python, reinicie o AURA ou configure este servidor MCP para usar um caminho de comando absoluto.",

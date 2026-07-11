@@ -30,9 +30,12 @@ export interface LiveVoiceSession {
   on(event: 'stateChange', callback: (state: LiveVoiceState) => void): void;
   on(event: 'error', callback: (err: { type: LiveVoiceErrorType; message: string }) => void): void;
   on(event: 'close', callback: () => void): void;
+  on(event: 'resumptionUpdate', callback: (update: any) => void): void;
 }
 
 export interface LiveVoiceProvider {
+  readonly sampleRate: number;
+  readonly mimeType: string;
   connect(options: {
     apiKey: string;
     model: string;
@@ -42,5 +45,7 @@ export interface LiveVoiceProvider {
       // M6: device selection forwarded from VoiceConfig; reserved for Phase 2 audio capture
       microphoneId?: string;
     };
+    voiceName?: string;
+    sessionResumptionHandle?: string;
   }): Promise<LiveVoiceSession>;
 }

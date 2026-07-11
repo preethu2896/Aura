@@ -55,6 +55,8 @@ export type GuidSendDeps = {
   navigate: NavigateFunction;
   t: TFunction;
   localeKey: string;
+  /** Active project ID — passed as extra.project_id when creating conversations */
+  activeProjectId?: string;
 };
 
 export type GuidSendResult = {
@@ -96,6 +98,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
     navigate,
     t,
     localeKey,
+    activeProjectId,
   } = deps;
   const sendingRef = useRef(false);
 
@@ -167,6 +170,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
             custom_workspace: isCustomWorkspace,
             selected_mcp_server_ids: selectedUserMcpServerIdsToSend,
             selected_session_mcp_servers: selectedSessionMcpServersToSend,
+            project_id: activeProjectId,
           },
         });
 
@@ -217,6 +221,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
           selected_mcp_server_ids: selectedUserMcpServerIdsToSend,
           selected_session_mcp_servers:
             selectedMcpServerIds !== undefined ? selectedSessionMcpServers : selectedSessionMcpServersToSend,
+          project_id: activeProjectId,
         },
       });
       if (!conversation || !conversation.id) {
@@ -268,6 +273,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
     navigate,
     t,
     localeKey,
+    activeProjectId,
   ]);
 
   const sendMessageHandler = useCallback(() => {

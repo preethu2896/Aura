@@ -1,11 +1,6 @@
-/**
- * @license
- * Copyright 2026 AionUi (aura.com)
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { GoogleGenAI, Modality } from '@google/genai';
 import type { LiveVoiceProvider, LiveVoiceSession } from '../types';
+import { pcmToBase64 } from '../audioEncoder';
 
 export class GeminiLiveSession implements LiveVoiceSession {
   private conn: any = null;
@@ -15,14 +10,23 @@ export class GeminiLiveSession implements LiveVoiceSession {
     stateChange: [],
     error: [],
     close: [],
+    resumptionUpdate: [],
   };
 
   constructor(session: any) {
     this.conn = session;
   }
 
-  async sendAudioChunk(_chunk: Uint8Array): Promise<void> {
-    // Phase 1: Stubbed, not implemented
+  async sendAudioChunk(chunk: Uint8Array): Promise<void> {
+    if (this.conn) {
+      const base64Data = pcmToBase64(chunk);
+      this.conn.sendRealtimeInput({
+        media: {
+          data: base64Data,
+          mimeType: 'audio/pcm;rate=24000',
+        },
+      });
+    }
   }
 
   async sendTextMessage(text: string): Promise<void> {
@@ -42,7 +46,7 @@ export class GeminiLiveSession implements LiveVoiceSession {
     // C3: reset all listener arrays so that any SDK callbacks (onerror, onclose)
     // that fire after this point during WebSocket teardown are silently discarded
     // and cannot trigger state changes in LiveVoiceManager.
-    this.callbacks = { audio: [], text: [], stateChange: [], error: [], close: [] };
+    this.callbacks = { audio: [], text: [], stateChange: [], error: [], close: [], resumptionUpdate: [] };
   }
 
   on(event: string, callback: any): void {
@@ -60,6 +64,9 @@ export class GeminiLiveSession implements LiveVoiceSession {
 }
 
 export class GeminiLiveProvider implements LiveVoiceProvider {
+  readonly sampleRate = 24000;
+  readonly mimeType = 'audio/pcm';
+
   async connect(options: {
     apiKey: string;
     model: string;
@@ -69,6 +76,8 @@ export class GeminiLiveProvider implements LiveVoiceProvider {
       // M6: device selection forwarded from VoiceConfig; reserved for Phase 2
       microphoneId?: string;
     };
+    voiceName?: string;
+    sessionResumptionHandle?: string;
   }): Promise<LiveVoiceSession> {
     const ai = new GoogleGenAI({ apiKey: options.apiKey });
 
@@ -87,25 +96,35 @@ export class GeminiLiveProvider implements LiveVoiceProvider {
       }
     };
 
-    const session = await ai.live.connect({
-      model: options.model,
-      config: {
-        generationConfig: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: {
-                voiceName: 'Aoede',
-              },
+    const config: any = {
+      generationConfig: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: options.voiceName || 'Aoede',
             },
           },
         },
       },
+      sessionResumption: {},
+    };
+
+    if (options.sessionResumptionHandle) {
+      config.sessionResumption.handle = options.sessionResumptionHandle;
+    }
+
+    const session = await ai.live.connect({
+      model: options.model,
+      config,
       callbacks: {
         onopen: () => {
           emitOrQueue('stateChange', 'listening');
         },
         onmessage: (message: any) => {
+          if (message.sessionResumptionUpdate) {
+            emitOrQueue('resumptionUpdate', message.sessionResumptionUpdate);
+          }
           if (message.serverContent) {
             const turn = message.serverContent.modelTurn;
             if (turn && turn.parts) {

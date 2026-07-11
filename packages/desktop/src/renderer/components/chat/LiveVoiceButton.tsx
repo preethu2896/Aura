@@ -31,7 +31,7 @@ const LiveVoiceButton: React.FC<LiveVoiceButtonProps> = ({ disabled }) => {
   const { t } = useTranslation();
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isConfigLoaded, setIsConfigLoaded] = useState(false);
-  const { state, errorType, toggleVoiceMode } = useLiveVoice();
+  const { state, errorType, toggleVoiceMode, volume } = useLiveVoice();
 
   useEffect(() => {
     let active = true;
@@ -117,6 +117,19 @@ const LiveVoiceButton: React.FC<LiveVoiceButtonProps> = ({ disabled }) => {
     ? t('conversation.voice.stop', { defaultValue: 'Stop Voice Mode' })
     : t('conversation.voice.start', { defaultValue: 'Start Voice Mode' });
 
+  const getBarHeight = (index: number) => {
+    if (!isActive) return '6px';
+    if (isThinking || isExecuting) return '6px';
+    const factor = 0.4 + 0.6 * Math.sin((index / 8) * Math.PI);
+    const h = Math.round(4 + volume * 12 * factor);
+    return `${h}px`;
+  };
+
+  const getBarAnimation = () => {
+    if (isSpeaking || isListening) return 'none';
+    return undefined;
+  };
+
   const waveformBars = Array.from({ length: 8 });
 
   return (
@@ -129,7 +142,8 @@ const LiveVoiceButton: React.FC<LiveVoiceButtonProps> = ({ disabled }) => {
                 key={`live-voice-wave-${index}`}
                 className='live-voice-feedback__bar'
                 style={{
-                  height: isSpeaking ? '16px' : '6px',
+                  height: getBarHeight(index),
+                  animation: getBarAnimation(),
                   animationDelay: `${index * 150}ms`,
                   animationPlayState: isSpeaking || isListening ? 'running' : 'paused',
                 }}

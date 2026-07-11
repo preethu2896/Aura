@@ -122,6 +122,7 @@ const WorkspaceGroupedHistory: React.FC<WorkspaceGroupedHistoryProps> = ({
     removeProjectLoading,
     handleRemoveProjectCancel,
     handleRemoveProjectConfirm,
+    handleMoveToProject,
   } = useConversationActions({
     batchMode,
     onSessionClick,
@@ -183,6 +184,7 @@ const WorkspaceGroupedHistory: React.FC<WorkspaceGroupedHistoryProps> = ({
       // future per-platform re-enable.
       onTogglePin: handleTogglePin,
       getJobStatus,
+      onMoveToProject: handleMoveToProject,
     }),
     [
       collapsed,
@@ -201,6 +203,7 @@ const WorkspaceGroupedHistory: React.FC<WorkspaceGroupedHistoryProps> = ({
       handleDeleteClick,
       handleTogglePin,
       getJobStatus,
+      handleMoveToProject,
     ]
   );
 

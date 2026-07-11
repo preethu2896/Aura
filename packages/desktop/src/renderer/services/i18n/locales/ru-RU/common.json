@@ -74,12 +74,12 @@
   "backendStartup": {
     "incompatibleRuntime": {
       "title": "Эта система не поддерживается встроенным backend",
-      "description": "AURA открылся, но локальный backend AionCore не может работать в этой версии Linux. Обновитесь до поддерживаемого дистрибутива Linux и перезапустите AURA.",
+      "description": "AURA открылся, но локальный backend AURA Core не может работать в этой версии Linux. Обновитесь до поддерживаемого дистрибутива Linux и перезапустите AURA.",
       "requiredVersions": "Требуемые символы среды выполнения: {{versions}}"
     },
     "incompleteInstallation": {
       "title": "Установка AURA неполная",
-      "description": "В этой установке отсутствуют обязательные локальные ресурсы, поэтому AionCore не может запуститься. Загрузите и переустановите последнюю версию AURA. Если проблема повторится после переустановки, проверьте, не поместило ли защитное или антивирусное ПО AionCore в карантин.",
+      "description": "В этой установке отсутствуют обязательные локальные ресурсы, поэтому AURA Core не может запуститься. Загрузите и переустановите последнюю версию AURA. Если проблема повторится после переустановки, проверьте, не поместило ли защитное или антивирусное ПО AURA Core в карантин.",
       "downloadLatest": "Скачать последнюю версию",
       "sendDiagnostics": "Отправить диагностику",
       "diagnosticsSent": "Диагностика отправлена",
@@ -93,7 +93,7 @@
     },
     "dataMigration": {
       "title": "Local data migration failed",
-      "description": "AURA opened, but AionCore stopped while initializing local data. Reinstalling AURA may not fix this. Send a diagnostics report or contact support so the local database migration can be inspected.",
+      "description": "AURA opened, but AURA Core stopped while initializing local data. Reinstalling AURA may not fix this. Send a diagnostics report or contact support so the local database migration can be inspected.",
       "sendDiagnostics": "Send diagnostics",
       "diagnosticsSent": "Diagnostics sent",
       "diagnosticsReportSuccess": "Diagnostics report sent",
@@ -101,7 +101,7 @@
     },
     "localDataRepair": {
       "title": "Local data repair failed",
-      "description": "AURA opened, but AionCore stopped while repairing local agent cache data. Reinstalling AURA may not fix this. Send a diagnostics report or contact support so the local database can be inspected.",
+      "description": "AURA opened, but AURA Core stopped while repairing local agent cache data. Reinstalling AURA may not fix this. Send a diagnostics report or contact support so the local database can be inspected.",
       "sendDiagnostics": "Send diagnostics",
       "diagnosticsSent": "Diagnostics sent",
       "diagnosticsReportSuccess": "Diagnostics report sent",

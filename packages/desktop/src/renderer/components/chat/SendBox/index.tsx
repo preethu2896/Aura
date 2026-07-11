@@ -18,6 +18,7 @@ import { buildAtFileInsertion, getActiveAtFileQuery, getAllAtFileQueries } from 
 import { getLastAssistantText } from '@/renderer/utils/chat/getLastAssistantText';
 import { emitter, type ReplyQuote, useAddEventListener } from '@/renderer/utils/emitter';
 import { mergeFileSelectionItems, type FileSelectionItem } from '@/renderer/utils/file/fileSelection';
+import type { ModelMetadata } from '@/common/types/provider/modelMetadata';
 import type { FileOrFolderItem } from '@/renderer/utils/file/fileTypes';
 import { filterWorkspaceMentionItems } from '@/renderer/utils/file/workspaceMentions';
 import { copyText } from '@/renderer/utils/ui/clipboard';
@@ -180,6 +181,7 @@ const SendBox: React.FC<{
   selectedWorkspaceItems?: FileSelectionItem[];
   onSelectedWorkspaceItemsChange?: (items: FileSelectionItem[]) => void;
   bottomHint?: React.ReactNode;
+  activeModelMetadata?: ModelMetadata;
   /**
    * Mobile-only: open a parent-supplied action sheet via the `+` button.
    * When provided, mobile renders a single `+` button (left) and send/stop button (right);
@@ -212,6 +214,7 @@ const SendBox: React.FC<{
   selectedWorkspaceItems,
   onSelectedWorkspaceItemsChange,
   bottomHint,
+  activeModelMetadata,
   onMobilePlusClick,
 }) => {
   const layout = useLayoutContext();
@@ -1306,9 +1309,9 @@ const SendBox: React.FC<{
       onTranscript={handleSpeechTranscript}
     />
   );
-  const renderedLiveVoiceButton = isMobileCompact ? null : (
-    <LiveVoiceButton disabled={disabled || isLoading || loading} />
-  );
+  const showVoiceButton = activeModelMetadata ? activeModelMetadata.supportsRealtimeVoice : true;
+  const renderedLiveVoiceButton =
+    isMobileCompact || !showVoiceButton ? null : <LiveVoiceButton disabled={disabled || isLoading || loading} />;
 
   const renderHighlightedInputValue = useCallback(() => {
     if (!input) {
