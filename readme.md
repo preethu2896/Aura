@@ -1,44 +1,14 @@
-# AURA - Cowork with AI Agents
+# AURA — The AI Cowork Platform
 
-AURA is a free, open-source Cowork application designed for side-by-side collaboration with AI Agents.
+AURA is a premium side-by-side AI Cowork platform that integrates autonomous agent execution, multi-agent coordination, and natural-language automation directly into your daily workspace workflows.
 
-## Key Features
+## Key Capabilities
 
-- **Cowork Platform**: Unlike traditional AI clients, AURA gives AI Agents full capability to read/write files, run terminal commands, search the web, and execute tools under your supervision.
-- **ChatGPT-Style Projects**: Organize conversations, files, custom memory, and LLM settings into isolated project folders. Project memory never leaks between scopes.
-- **Multi-Agent Ecosystem**: Automatically detects and integrates CLI developer tools such as Claude Code, Codex, Qwen Code, and AURA CLI (aionrs) in a unified workspace GUI.
-- **Team Mode**: Run Leader-Teammate agent flows to delegate and execute complex developer tasks concurrently.
-- **Office Document Automation**: Built-in specialized assistants for automated layout generation of presentations (PPT), papers (Word), and spreadsheets (Excel).
-- **natural-language Cron Scheduling**: Set up background automation using standard cron rules or natural language commands.
-- **Anywhere Access**: Remote web interface (WebUI) and native chat bot integrations (Telegram, Lark, WeChat).
-- **Bring Your Own Key**: Supports commercial APIs (OpenAI, Anthropic, Gemini, DeepSeek), local endpoints (Ollama, LM Studio), and model hubs (NewAPI).
-
-## Quick Start
-
-### Prerequisites
-Make sure you have [Bun](https://bun.sh) installed.
-
-### Installation
-1. Clone the repository and install dependencies:
-   ```bash
-   git clone https://github.com/preethu2896/Aura.git
-   cd Aura
-   bun install
-   ```
-
-2. Start the development server:
-   ```bash
-   bun run dev
-   ```
-
-### Running Tests
-Run unit tests with Vitest:
-```bash
-bun run test
-```
-
-### Packaging
-Build the production package:
-```bash
-bun run build
-```
+- **Autonomous Cowork Platform**: Unlike basic chat clients, AURA gives AI Agents full capability to read/write workspace files, execute terminal tasks, retrieve web results, and run custom developer tools under direct user supervision.
+- **Isolated Workspace Projects**: Organize tasks, documents, customized instructions, settings, and memory into separate projects. Configuration states, model temperature, and voice defaults are inherited dynamically.
+- **Unified Multi-Agent Coordination**: Automatically detects and integrates standard developer command-line interfaces (including Claude Code, Codex, Qwen Code, and AURA's local rust service) under a single, unified workspace manager.
+- **Leader-Teammate Orchestration (Team Mode)**: Run leader-orchestrated workflows where a principal agent delegates, monitors, and aggregates parallel sub-tasks across teammate agents.
+- **cron Automation**: Schedule background agent tasks using standard cron rules or natural language alerts (such as compiling reports, organizing files, and executing audits).
+- **Office Document Automation**: In-app generators for presentations (with Morph transitions), structured Word templates, and Excel calculation sheets powered by OfficeCLI.
+- **Anywhere Remote Access**: Remote secure web interface (WebUI) and messaging bot gateways (Telegram, Lark, WeChat).
+- **Flexible Provider Architectures**: Support for cloud provider nodes (OpenAI, Anthropic, Gemini, DeepSeek), local nodes (Ollama, LM Studio), and gateway routers.
