@@ -362,20 +362,25 @@ const Layout: React.FC<{
                     viewBox='0 0 80 80'
                     fill='none'
                   >
+                    <defs>
+                      <linearGradient id='auraGlow' x1='20' y1='20' x2='60' y2='60' gradientUnits='userSpaceOnUse'>
+                        <stop offset='0%' stopColor='#A78BFA' />
+                        <stop offset='100%' stopColor='#7C3AED' />
+                      </linearGradient>
+                      <filter id='softBlur' x='-10%' y='-10%' width='120%' height='120%'>
+                        <feGaussianBlur stdDeviation='1.5' />
+                      </filter>
+                    </defs>
+                    <circle cx='40' cy='40' r='14' fill='url(#auraGlow)' opacity='0.15' filter='url(#softBlur)' />
                     <path
-                      key='logo-path-1'
-                      d='M40 20 Q38 22 25 40 Q23 42 26 42 L30 42 Q32 40 40 30 Q48 40 50 42 L54 42 Q57 42 55 40 Q42 22 40 20'
-                      fill='white'
-                    ></path>
-                    <circle key='logo-circle' cx='40' cy='46' r='3' fill='white'></circle>
-                    <path
-                      key='logo-path-2'
-                      d='M18 50 Q40 70 62 50'
-                      stroke='white'
-                      strokeWidth='3.5'
-                      fill='none'
+                      d='M28 54L38 24C39 21 41 21 42 24L52 54'
+                      stroke='url(#auraGlow)'
+                      strokeWidth='4.5'
                       strokeLinecap='round'
-                    ></path>
+                      strokeLinejoin='round'
+                    />
+                    <path d='M33 44Q40 40 47 44' stroke='url(#auraGlow)' strokeWidth='3' strokeLinecap='round' />
+                    <circle cx='40' cy='33' r='2' fill='#FFFFFF' />
                   </svg>
                 </div>
                 {isSettingsRoute ? (
