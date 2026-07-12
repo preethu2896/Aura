@@ -23,6 +23,7 @@ import { useDirectorySelection } from '@renderer/hooks/file/useDirectorySelectio
 import { cleanupSiderTooltips } from '@renderer/utils/ui/siderTooltip';
 import { useConversationShortcuts } from '@renderer/hooks/ui/useConversationShortcuts';
 import { isElectronDesktop } from '@renderer/utils/platform';
+import brandLogo from '@/renderer/assets/logos/brand/app.png';
 import '@renderer/styles/layout.css';
 
 const SidebarIcon: React.FC<{ size?: number; strokeWidth?: number }> = ({ size = 18, strokeWidth = 4 }) => (
@@ -355,33 +356,13 @@ const Layout: React.FC<{
                   })}
                   onClick={onClick}
                 >
-                  <svg
-                    className={classNames('w-5.5 h-5.5 absolute inset-0 m-auto', {
+                  <img
+                    src={brandLogo}
+                    alt='AURA Logo'
+                    className={classNames('w-5.5 h-5.5 absolute inset-0 m-auto object-contain', {
                       'scale-140': !collapsed,
                     })}
-                    viewBox='0 0 80 80'
-                    fill='none'
-                  >
-                    <defs>
-                      <linearGradient id='auraGlow' x1='20' y1='20' x2='60' y2='60' gradientUnits='userSpaceOnUse'>
-                        <stop offset='0%' stopColor='#A78BFA' />
-                        <stop offset='100%' stopColor='#7C3AED' />
-                      </linearGradient>
-                      <filter id='softBlur' x='-10%' y='-10%' width='120%' height='120%'>
-                        <feGaussianBlur stdDeviation='1.5' />
-                      </filter>
-                    </defs>
-                    <circle cx='40' cy='40' r='14' fill='url(#auraGlow)' opacity='0.15' filter='url(#softBlur)' />
-                    <path
-                      d='M28 54L38 24C39 21 41 21 42 24L52 54'
-                      stroke='url(#auraGlow)'
-                      strokeWidth='4.5'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                    <path d='M33 44Q40 40 47 44' stroke='url(#auraGlow)' strokeWidth='3' strokeLinecap='round' />
-                    <circle cx='40' cy='33' r='2' fill='#FFFFFF' />
-                  </svg>
+                  />
                 </div>
                 {isSettingsRoute ? (
                   <Tooltip content={t('common.back', { defaultValue: 'Back to Chat' })} position='bottom'>
