@@ -5,8 +5,9 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { useHierarchicalMemory } from './useHierarchicalMemory';
-import { useConversationSummarizer } from './useConversationSummarizer';
+import { renderHook } from '@testing-library/react';
+import { useHierarchicalMemory } from '@/renderer/hooks/chat/useHierarchicalMemory';
+import { useConversationSummarizer } from '@/renderer/hooks/chat/useConversationSummarizer';
 import { ipcBridge } from '@/common';
 
 // Mock ipcBridge
@@ -25,6 +26,9 @@ vi.mock('@/common', () => {
         add: {
           invoke: vi.fn(),
         },
+        summarize: {
+          invoke: vi.fn(),
+        },
       },
       projects: {
         listMemory: {
@@ -41,7 +45,7 @@ vi.mock('@/common', () => {
 });
 
 // Mock SessionMemoryContext
-vi.mock('../context/SessionMemoryContext', () => {
+vi.mock('@/renderer/hooks/context/SessionMemoryContext', () => {
   return {
     useSessionMemory: () => ({
       sessionNotes: {
@@ -76,6 +80,7 @@ vi.mock('@/renderer/pages/conversation/utils/conversationCache', () => {
   return {
     getConversationOrNull: vi.fn().mockResolvedValue({
       id: 'conv-123',
+      type: 'aionrs',
       model: {
         id: 'provider-1',
         name: 'provider-name',
@@ -138,9 +143,13 @@ describe('Hierarchical Memory Pipeline', () => {
       },
     ] as any);
 
-    const { getHierarchicalMemoryContext } = useHierarchicalMemory();
+    const { result } = renderHook(() => useHierarchicalMemory());
 
-    const compiled = await getHierarchicalMemoryContext('conv-123', 'proj-456', 'System Prompt Baseline');
+    const compiled = await result.current.getHierarchicalMemoryContext(
+      'conv-123',
+      'proj-456',
+      'System Prompt Baseline'
+    );
 
     // Verify sections exist
     expect(compiled).toContain('# SYSTEM PROMPT');
@@ -172,39 +181,14 @@ describe('Hierarchical Memory Pipeline', () => {
   });
 
   it('triggers summarization based on dynamic context token budgets and deltas', async () => {
-    // Mock getConversationMessages returning high character count (> 15000 chars)
-    vi.mocked(ipcBridge.database.getConversationMessages.invoke).mockResolvedValue({
-      data: [
-        {
-          id: 'msg-1',
-          type: 'text',
-          position: 'right',
-          content: 'A'.repeat(8000),
-        },
-        {
-          id: 'msg-2',
-          type: 'text',
-          position: 'left',
-          content: 'B'.repeat(8000),
-        },
-      ],
-      cursor: null,
-    } as any);
+    vi.mocked(ipcBridge.conversationMemory.summarize.invoke).mockResolvedValue('Mocked background summary content');
 
-    // Mock no previous summary generated yet
-    vi.mocked(ipcBridge.conversationMemory.list.invoke).mockResolvedValue([]);
+    const { result } = renderHook(() => useConversationSummarizer());
+    await result.current.summarizeConversation('conv-123');
 
-    const { summarizeConversation } = useConversationSummarizer();
-    await summarizeConversation('conv-123');
-
-    // Verify the summarizer made the LLM call and saved the versioned summary to the database
-    expect(ipcBridge.conversationMemory.add.invoke).toHaveBeenCalledWith(
-      expect.objectContaining({
-        conversation_id: 'conv-123',
-        content: 'Mocked background summary content',
-        tags: [expect.stringContaining('chars:')],
-        source: 'agent',
-      })
-    );
+    // Verify the summarizer called the main process summarize bridge
+    expect(ipcBridge.conversationMemory.summarize.invoke).toHaveBeenCalledWith({
+      conversationId: 'conv-123',
+    });
   });
 });

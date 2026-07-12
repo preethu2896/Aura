@@ -349,11 +349,11 @@ const ChatConversation: React.FC<{
     return <GoogleModelSelector disabled={true} />;
   }, [conversation, isAionrsConversation, isMobile, isLegacyReadOnlyConversation, resolvedConversationBackend]);
 
+  const [showDetails, setShowDetails] = useState(false);
+
   if (conversation && conversation.type === 'aionrs') {
     return <AionrsConversationPanel key={conversation.id} conversation={conversation} sliderTitle={sliderTitle} />;
   }
-
-  const [showDetails, setShowDetails] = useState(false);
 
   // 如果有预设助手信息，使用预设助手的 logo 和名称；加载中时不进入 fallback；否则使用 backend 的 logo
   // If preset assistant info exists, use preset logo/name; while loading, avoid fallback; otherwise use backend logo

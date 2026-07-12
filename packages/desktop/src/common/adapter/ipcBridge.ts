@@ -2116,4 +2116,5 @@ export const conversationMemory = {
   list: bridge.buildProvider<TConversationMemory[], { conversationId: string }>('conversation-memory:list'),
   add: bridge.buildProvider<TConversationMemory, AddConversationMemoryRequest>('conversation-memory:add'),
   delete: bridge.buildProvider<void, { id: string }>('conversation-memory:delete'),
+  summarize: bridge.buildProvider<string | null, { conversationId: string }>('conversation-memory:summarize'),
 };

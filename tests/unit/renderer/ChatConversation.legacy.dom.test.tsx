@@ -64,6 +64,31 @@ vi.mock('@/renderer/pages/conversation/Preview', () => ({
   usePreviewContext: () => ({ openPreview: vi.fn() }),
 }));
 
+vi.mock('@/renderer/pages/conversation/platforms/aionrs/AionrsChat', () => ({
+  __esModule: true,
+  default: () => <div data-testid='mock-aionrs-chat'>Aionrs Chat</div>,
+}));
+
+vi.mock('@/renderer/pages/conversation/platforms/aionrs/AionrsModelSelector', () => ({
+  __esModule: true,
+  default: () => <div data-testid='mock-aionrs-model-selector'>Aionrs Model Selector</div>,
+}));
+
+vi.mock('@/renderer/pages/conversation/runtime/useConversationRuntimeView', () => ({
+  useConversationRuntimeView: () => ({
+    activeTurnId: undefined,
+    markStopAcknowledged: vi.fn(),
+  }),
+}));
+
+vi.mock('@/renderer/hooks/agent/useModelProviderList', () => ({
+  useModelProviderList: () => ({
+    providers: [],
+    getAvailableModels: () => [],
+    formatModelLabel: () => '',
+  }),
+}));
+
 function legacyConversation(type: 'gemini' | 'codex' | 'openclaw-gateway' | 'nanobot' | 'remote'): TChatConversation {
   return {
     id: `conv-${type}`,
@@ -183,5 +208,86 @@ describe('ChatConversation legacy runtime rendering', () => {
         waitForWarmup: true,
       })
     );
+  });
+
+  it('renders aionrs conversations successfully without hook violation crashes', () => {
+    render(
+      <ChatConversation
+        conversation={
+          {
+            id: 'conv-aionrs',
+            user_id: 'user-1',
+            name: 'Aionrs chat',
+            type: 'aionrs',
+            model: {},
+            extra: { workspace: '/tmp/aura-history' },
+            status: 'finished',
+            source: 'aura',
+            created_at: 1,
+            modified_at: 1,
+            pinned: false,
+          } as TChatConversation
+        }
+      />
+    );
+
+    expect(screen.getByTestId('mock-aionrs-chat')).toBeInTheDocument();
+  });
+
+  it('handles transition between aionrs and acp conversations without hook violation crashes', () => {
+    const { rerender } = render(
+      <ChatConversation
+        conversation={
+          {
+            id: 'conv-aionrs',
+            user_id: 'user-1',
+            name: 'Aionrs chat',
+            type: 'aionrs',
+            model: {},
+            extra: { workspace: '/tmp/aura-history' },
+            status: 'finished',
+            source: 'aura',
+            created_at: 1,
+            modified_at: 1,
+            pinned: false,
+          } as TChatConversation
+        }
+      />
+    );
+
+    expect(screen.getByTestId('mock-aionrs-chat')).toBeInTheDocument();
+
+    usePresetAssistantInfoMock.mockReturnValue({
+      info: {
+        name: 'Research Assistant',
+        logo: '📚',
+        isEmoji: true,
+        backend: 'codex',
+        assistantId: 'assistant-research',
+      },
+      isLoading: false,
+    });
+
+    rerender(
+      <ChatConversation
+        conversation={
+          {
+            id: 'conv-acp',
+            user_id: 'user-1',
+            name: 'ACP history',
+            type: 'acp',
+            model: {},
+            extra: { workspace: '/tmp/aura-history', backend: 'claude' },
+            status: 'finished',
+            source: 'aura',
+            created_at: 1,
+            modified_at: 1,
+            pinned: false,
+          } as TChatConversation
+        }
+      />
+    );
+
+    expect(screen.getByTestId('mock-acp-chat')).toBeInTheDocument();
   });
 });
