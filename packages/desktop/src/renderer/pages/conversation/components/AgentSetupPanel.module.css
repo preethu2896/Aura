@@ -1,0 +1,171 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 28px 32px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-2);
+  background: var(--color-bg-2);
+  box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.headerIcon {
+  color: var(--color-danger-light-3);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.panelTitle {
+  margin: 0 0 4px !important;
+  font-size: 17px !important;
+  color: var(--color-text-1);
+}
+
+.panelSubtitle {
+  margin: 0 !important;
+  font-size: 13px;
+  color: var(--color-text-3);
+  line-height: 1.5;
+}
+
+.depList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.depRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--color-bg-3);
+  border: 1px solid var(--color-border-1);
+}
+
+.depIcon {
+  color: var(--color-warning-light-3);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.depContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.depHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.depName {
+  font-size: 14px;
+  color: var(--color-text-1);
+}
+
+.depTypeTag {
+  font-size: 11px;
+  color: var(--color-text-4);
+  background: var(--color-fill-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.depDescription {
+  margin: 0 !important;
+  font-size: 12.5px;
+  color: var(--color-text-3);
+  line-height: 1.5;
+}
+
+.depInstall {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-fill-1);
+  border: 1px solid var(--color-border-1);
+  border-radius: 6px;
+  padding: 6px 10px;
+  overflow: hidden;
+}
+
+.depInstallCode {
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--color-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: transparent;
+}
+
+.copyBtn {
+  flex-shrink: 0;
+  color: var(--color-text-3) !important;
+}
+
+.copyBtn:hover {
+  color: var(--color-primary-light-4) !important;
+}
+
+.actionBtn {
+  align-self: flex-start;
+  font-size: 12px;
+}
+
+.docLink {
+  font-size: 12px;
+  color: var(--color-primary-light-4);
+  text-decoration: none;
+  align-self: flex-start;
+}
+
+.docLink:hover {
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+  border-top: 1px solid var(--color-border-1);
+}
+
+.successCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 20px 24px;
+  border-radius: 12px;
+  background: var(--color-success-light-1);
+  border: 1px solid var(--color-success-light-3);
+}
+
+.successIcon {
+  color: var(--color-success-light-4);
+  flex-shrink: 0;
+}
+
+.successText {
+  font-size: 14px;
+  color: var(--color-success-light-4);
+}

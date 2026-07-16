@@ -24,6 +24,7 @@ import React from 'react';
 import AcpE2EStreamInjector from './AcpE2EStreamInjector';
 import AcpSendBox from './AcpSendBox';
 import { useAcpMessage } from './useAcpMessage';
+import AgentSetupPanel from '@renderer/pages/conversation/components/AgentSetupPanel';
 
 const AcpChat: React.FC<{
   conversation_id: string;
@@ -61,6 +62,11 @@ const AcpChat: React.FC<{
   const teamPermission = useTeamPermission();
   const messageState = useAcpMessage(conversation_id, { skipWarmup: Boolean(teamPermission) });
 
+  // Show AgentSetupPanel as the empty-state slot when missing deps were stored
+  // in sessionStorage by useGuidSend before navigating to this conversation.
+  const hasMissingDeps = Boolean(sessionStorage.getItem(`agent_missing_deps_${conversation_id}`));
+  const resolvedEmptySlot = hasMissingDeps ? <AgentSetupPanel conversationId={conversation_id} /> : emptySlot;
+
   return (
     <ConversationProvider
       value={{
@@ -78,7 +84,7 @@ const AcpChat: React.FC<{
       <ConversationArtifactProvider conversation_id={conversation_id}>
         <div className={`${CHAT_SURFACE_CONTAINER_CLASS} flex-1 flex flex-col px-20px min-h-0`}>
           <FlexFullContainer>
-            <MessageList className='flex-1' emptySlot={emptySlot} />
+            <MessageList className='flex-1' emptySlot={resolvedEmptySlot} />
           </FlexFullContainer>
           <AcpE2EStreamInjector conversationId={conversation_id} />
           {!hideSendBox && (

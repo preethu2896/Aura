@@ -2118,3 +2118,20 @@ export const conversationMemory = {
   delete: bridge.buildProvider<void, { id: string }>('conversation-memory:delete'),
   summarize: bridge.buildProvider<string | null, { conversationId: string }>('conversation-memory:summarize'),
 };
+
+// ---------------------------------------------------------------------------
+// Agent Health — main-process dependency diagnostics (IPC, not HTTP)
+// The renderer must never probe the OS directly; all checks run in the main
+// process and are cached there.  Only two lightweight channels are exposed:
+//   list    → returns the cached health snapshot (no re-probing)
+//   refresh → re-runs all probes and returns the updated snapshot
+// ---------------------------------------------------------------------------
+
+export const agentHealth = {
+  list: bridge.buildProvider<import('@/common/types/agent/agentHealthTypes').AgentHealthEntry[], void>(
+    'agent-health:list'
+  ),
+  refresh: bridge.buildProvider<import('@/common/types/agent/agentHealthTypes').AgentHealthEntry[], void>(
+    'agent-health:refresh'
+  ),
+};
