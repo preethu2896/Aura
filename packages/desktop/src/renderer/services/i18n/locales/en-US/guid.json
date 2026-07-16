@@ -13,5 +13,29 @@
     "specifyWorkspace": "Select project folder",
     "searchPlaceholder": "Search projects…",
     "noProject": "No Project"
+  },
+  "onboarding": {
+    "title": "Welcome to AURA",
+    "description": "Please configure at least one LLM model provider (such as Gemini, OpenAI, or Claude) in the settings to start chatting.",
+    "button": "Configure Provider"
+  },
+  "agentSetup": {
+    "title": "Setup Required",
+    "subtitle": "This agent requires additional configuration before it can run.",
+    "depType": {
+      "binary": "Missing binary",
+      "provider": "Provider not configured",
+      "env_var": "Missing environment variable",
+      "auth": "Authentication required",
+      "platform": "Platform not supported"
+    },
+    "installCommand": "Install with:",
+    "copyCommand": "Copy",
+    "verifyInstall": "Verify Installation",
+    "verifying": "Checking…",
+    "configureProvider": "Configure Provider",
+    "openSettings": "Open Settings",
+    "viewDocs": "View Documentation →",
+    "allResolved": "All dependencies resolved. You can now send a message."
   }
 }

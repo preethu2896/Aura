@@ -5,7 +5,8 @@
  */
 
 import { ipcBridge } from '@/common';
-import type { IMcpServer, TProviderWithModel } from '@/common/config/storage';
+import { acpConversation } from '@/common/adapter/ipcBridge';
+import type { IProvider, IMcpServer, TProviderWithModel } from '@/common/config/storage';
 import { toSessionMcpServer } from '@/renderer/hooks/mcp/catalog';
 import { emitter } from '@/renderer/utils/emitter';
 import { updateWorkspaceTime } from '@/renderer/utils/workspace/workspaceHistory';
@@ -16,6 +17,7 @@ import type { NavigateFunction } from 'react-router-dom';
 import { mutate as swrMutate } from 'swr';
 import { getConversationCreateErrorMessage } from '@/renderer/pages/conversation/utils/conversationCreateError';
 import type { AcpModelInfo } from '../types';
+import { prepareAgentRuntime } from '@/renderer/services/agentRuntimePreparation';
 
 export type GuidSendDeps = {
   // Input state
@@ -44,6 +46,9 @@ export type GuidSendDeps = {
   selectedMcpServerIds: string[] | undefined;
   assistantDefaultMcpIds?: string[];
   isGoogleAuth: boolean;
+
+  /** All configured providers — used by prepareAgentRuntime to resolve API keys. */
+  allProviders: IProvider[];
 
   // Mention state reset
   setMentionOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -91,6 +96,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
     availableMcpServers,
     selectedMcpServerIds,
     assistantDefaultMcpIds,
+    allProviders,
     setMentionOpen,
     setMentionQuery,
     setMentionSelectorOpen,
@@ -155,6 +161,17 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
         Message.warning(t('conversation.noModelConfigured'));
         return;
       }
+
+      // Generic runtime preparation: resolve provider keys and detect missing deps.
+      // Never blocks conversation creation — missing deps are surfaced in-conversation.
+      const prepResult = await prepareAgentRuntime(selectedAssistantBackend, allProviders);
+      if (prepResult.ok && Object.keys(prepResult.envInjected).length > 0) {
+        await acpConversation.setAgentOverrides.invoke({
+          id: assistantConversationId,
+          env_override: Object.entries(prepResult.envInjected).map(([name, value]) => ({ name, value })),
+        });
+      }
+
       try {
         const conversation = await ipcBridge.conversation.create.invoke({
           name: input,
@@ -198,12 +215,27 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
         };
         sessionStorage.setItem(`aionrs_initial_message_${conversation.id}`, JSON.stringify(initialMessage));
 
+        // Store missing deps so AgentSetupPanel can display them inside the conversation.
+        const prepForStore = await prepareAgentRuntime(selectedAssistantBackend, allProviders);
+        if (prepForStore.ok === false) {
+          sessionStorage.setItem(`agent_missing_deps_${conversation.id}`, JSON.stringify(prepForStore.missingDeps));
+        }
+
         await navigate(`/conversation/${conversation.id}`);
       } catch (error: unknown) {
         console.error('Failed to create AURA CLI conversation:', error);
         throw error;
       }
       return;
+    }
+
+    // ACP path — generic runtime preparation before conversation creation.
+    const prepResult = await prepareAgentRuntime(selectedAssistantBackend, allProviders);
+    if (prepResult.ok && Object.keys(prepResult.envInjected).length > 0) {
+      await acpConversation.setAgentOverrides.invoke({
+        id: assistantConversationId,
+        env_override: Object.entries(prepResult.envInjected).map(([name, value]) => ({ name, value })),
+      });
     }
 
     try {
@@ -248,6 +280,11 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
       };
       sessionStorage.setItem(`acp_initial_message_${conversation.id}`, JSON.stringify(initialMessage));
 
+      // Store missing deps so AgentSetupPanel can display them inside the conversation.
+      if (prepResult.ok === false) {
+        sessionStorage.setItem(`agent_missing_deps_${conversation.id}`, JSON.stringify(prepResult.missingDeps));
+      }
+
       await navigate(`/conversation/${conversation.id}`);
     } catch (error: unknown) {
       console.error('Failed to create ACP conversation:', error);
@@ -270,6 +307,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
     availableMcpServers,
     selectedMcpServerIds,
     assistantDefaultMcpIds,
+    allProviders,
     navigate,
     t,
     localeKey,

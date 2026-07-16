@@ -5,6 +5,7 @@
  */
 
 import { resolveBackendAssetUrl } from '@/renderer/utils/platform';
+import brandLogo from '@/renderer/assets/logos/brand/app.png';
 
 export type AssistantAvatar =
   | { kind: 'image'; value: string }
@@ -27,6 +28,15 @@ export function isLikelyLocalFilePath(value: string): boolean {
 export function resolveAssistantAvatar(avatar: string | undefined): AssistantAvatar {
   const value = avatar?.trim();
   if (!value) return { kind: 'fallback' };
+
+  const lowercaseValue = value.toLowerCase();
+  if (
+    lowercaseValue.includes('aionui-assistant') ||
+    lowercaseValue.includes('632f31d2') ||
+    lowercaseValue.includes('aionrs')
+  ) {
+    return { kind: 'image', value: brandLogo };
+  }
 
   if (isLikelyLocalFilePath(value)) {
     return { kind: 'fallback' };

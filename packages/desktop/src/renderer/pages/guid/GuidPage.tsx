@@ -11,6 +11,9 @@ import type { AssistantDetail } from '@/common/types/agent/assistantTypes';
 
 import { useInputFocusRing } from '@/renderer/hooks/chat/useInputFocusRing';
 import { openExternalUrl } from '@/renderer/utils/platform';
+import { useProvidersQuery } from '@/renderer/hooks/agent/useModelProviderList';
+import useSettingsModal from '@/renderer/components/settings/SettingsModal/useSettingsModal';
+import { LinkCloud } from '@icon-park/react';
 import AssistantSelectionArea from './components/AssistantSelectionArea';
 import GuidActionRow from './components/GuidActionRow';
 import GuidInputCard from './components/GuidInputCard';
@@ -24,9 +27,7 @@ import { useGuidSend } from './hooks/useGuidSend';
 import { useTypewriterPlaceholder } from './hooks/useTypewriterPlaceholder';
 import { ensureBackendMcpCatalog } from '@/renderer/hooks/mcp/catalog';
 import { resolveGuidAssistantDefaults } from './utils/assistantDefaults';
-import SpeechInputButton from '@/renderer/components/chat/SpeechInputButton';
-import { appendSpeechTranscript } from '@/renderer/hooks/system/useSpeechInput';
-import { useLiveTranscriptInsertion } from '@/renderer/hooks/system/useLiveTranscriptInsertion';
+import LiveVoiceButton from '@/renderer/components/chat/LiveVoiceButton';
 import { Button, ConfigProvider } from '@arco-design/web-react';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -34,6 +35,29 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
 import styles from './index.module.css';
 import { useProject } from '@/renderer/hooks/context/ProjectContext';
+
+const OnboardingCard: React.FC<{ onConfigure: () => void }> = ({ onConfigure }) => {
+  const { t } = useTranslation();
+  return (
+    <div className='flex flex-col items-center justify-center p-24px border border-border-2 rounded-16px bg-bg-base/60 backdrop-blur-md shadow-lg max-w-600px mx-auto my-16px text-center'>
+      <div className='flex items-center justify-center w-48px h-48px rounded-full bg-primary/10 text-primary mb-16px'>
+        <LinkCloud theme='outline' size={24} className='text-aou-6' />
+      </div>
+      <h3 className='text-18px font-semibold text-t-primary mb-8px'>
+        {t('guid.onboarding.title', { defaultValue: 'Welcome to AURA' })}
+      </h3>
+      <p className='text-13px text-t-secondary mb-20px leading-relaxed'>
+        {t('guid.onboarding.description', {
+          defaultValue:
+            'Please configure at least one LLM model provider (such as Gemini, OpenAI, or Claude) in the settings to start chatting.',
+        })}
+      </p>
+      <Button type='primary' size='large' onClick={onConfigure} className='!rounded-8px'>
+        {t('guid.onboarding.button', { defaultValue: 'Configure Provider' })}
+      </Button>
+    </div>
+  );
+};
 
 const GuidPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -43,6 +67,15 @@ const GuidPage: React.FC = () => {
   const { activeBorderColor, inactiveBorderColor, activeShadow } = useInputFocusRing();
 
   const { activeProjectId } = useProject();
+
+  const { data: allProviders } = useProvidersQuery();
+  const { openSettings, settingsModal } = useSettingsModal();
+
+  const hasConfiguredProviders = useMemo(() => {
+    return Array.isArray(allProviders) && allProviders.some((p) => p.enabled !== false && p.models?.length > 0);
+  }, [allProviders]);
+
+  const showOnboarding = allProviders !== undefined && allProviders !== null && !hasConfiguredProviders;
 
   const localeKey = resolveLocaleKey(i18n.language);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -179,6 +212,7 @@ const GuidPage: React.FC = () => {
     selectedMcpServerIds: guidSelectedMcpServerIds,
     assistantDefaultMcpIds: resolvedAssistantDefaults.mcpIds,
     isGoogleAuth: modelSelection.isGoogleAuth,
+    allProviders: allProviders ?? [],
 
     // Mention state reset
     setMentionOpen: resetMentionOpen,
@@ -448,13 +482,7 @@ const GuidPage: React.FC = () => {
     />
   );
 
-  const handleSpeechTranscript = useCallback(
-    (transcript: string) => {
-      guidInput.setInput((prev) => appendSpeechTranscript(prev, transcript));
-    },
-    [guidInput.setInput]
-  );
-  const { handleLiveTranscript } = useLiveTranscriptInsertion(guidInput.setInput);
+  // Legacy speech transcript handlers removed to unify voice mode
 
   // Build the action row
   const actionRowNode = (
@@ -473,13 +501,7 @@ const GuidPage: React.FC = () => {
       mcpServers={availableMcpServers}
       selectedMcpServerIds={guidSelectedMcpServerIds ?? []}
       onToggleMcpServer={handleToggleMcpServer}
-      speechInputNode={
-        <SpeechInputButton
-          disabled={guidInput.loading}
-          onLiveTranscript={handleLiveTranscript}
-          onTranscript={handleSpeechTranscript}
-        />
-      }
+      speechInputNode={<LiveVoiceButton disabled={guidInput.loading} />}
       loading={guidInput.loading}
       isButtonDisabled={send.isButtonDisabled}
       onSend={send.sendMessageHandler}
@@ -501,50 +523,56 @@ const GuidPage: React.FC = () => {
             onSelectAssistant={handleSelectAssistant}
           />
 
-          <GuidInputCard
-            input={guidInput.input}
-            onInputChange={handleInputChange}
-            onKeyDown={handleInputKeyDown}
-            onPaste={guidInput.onPaste}
-            onFocus={guidInput.handleTextareaFocus}
-            onBlur={guidInput.handleTextareaBlur}
-            placeholder={typewriterPlaceholder || t('conversation.welcome.placeholder')}
-            isInputActive={guidInput.isInputFocused}
-            isFileDragging={guidInput.isFileDragging}
-            activeBorderColor={activeBorderColor}
-            inactiveBorderColor={inactiveBorderColor}
-            activeShadow={activeShadow}
-            dragHandlers={guidInput.dragHandlers}
-            files={guidInput.files}
-            onRemoveFile={guidInput.handleRemoveFile}
-            actionRow={actionRowNode}
-            workspaceDir={guidInput.dir}
-            onSelectWorkspace={(dir) => guidInput.setDir(dir)}
-            onClearWorkspace={() => guidInput.setDir('')}
-          />
+          {showOnboarding ? (
+            <OnboardingCard onConfigure={() => openSettings('model')} />
+          ) : (
+            <>
+              <GuidInputCard
+                input={guidInput.input}
+                onInputChange={handleInputChange}
+                onKeyDown={handleInputKeyDown}
+                onPaste={guidInput.onPaste}
+                onFocus={guidInput.handleTextareaFocus}
+                onBlur={guidInput.handleTextareaBlur}
+                placeholder={typewriterPlaceholder || t('conversation.welcome.placeholder')}
+                isInputActive={guidInput.isInputFocused}
+                isFileDragging={guidInput.isFileDragging}
+                activeBorderColor={activeBorderColor}
+                inactiveBorderColor={inactiveBorderColor}
+                activeShadow={activeShadow}
+                dragHandlers={guidInput.dragHandlers}
+                files={guidInput.files}
+                onRemoveFile={guidInput.handleRemoveFile}
+                actionRow={actionRowNode}
+                workspaceDir={guidInput.dir}
+                onSelectWorkspace={(dir) => guidInput.setDir(dir)}
+                onClearWorkspace={() => guidInput.setDir('')}
+              />
 
-          {selectedAssistantPrompts.length > 0 ? (
-            <div className='mt-18px w-full animate-fade-in'>
-              <div className={`${styles.assistantPromptHint} mb-10px text-left`}>
-                {t('guid.promptExamplesHint', { defaultValue: 'Try these example prompts:' })}
-              </div>
-              <div className='flex flex-col gap-9px'>
-                {selectedAssistantPrompts.map((prompt, index) => (
-                  <Button
-                    key={`${index}-${prompt}`}
-                    type='text'
-                    className='!h-auto !w-full !rounded-10px !border !border-border-2 !bg-bg-base !px-10px !py-10px !text-left !text-12.5px !text-t-secondary !whitespace-normal !break-words transition-colors hover:!border-aou-6 hover:!text-t-primary'
-                    onClick={() => {
-                      guidInput.setInput(prompt);
-                      guidInput.handleTextareaFocus();
-                    }}
-                  >
-                    {prompt}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ) : null}
+              {selectedAssistantPrompts.length > 0 ? (
+                <div className='mt-18px w-full animate-fade-in'>
+                  <div className={`${styles.assistantPromptHint} mb-10px text-left`}>
+                    {t('guid.promptExamplesHint', { defaultValue: 'Try these example prompts:' })}
+                  </div>
+                  <div className='flex flex-col gap-9px'>
+                    {selectedAssistantPrompts.map((prompt, index) => (
+                      <Button
+                        key={`${index}-${prompt}`}
+                        type='text'
+                        className='!h-auto !w-full !rounded-10px !border !border-border-2 !bg-bg-base !px-10px !py-10px !text-left !text-12.5px !text-t-secondary !whitespace-normal !break-words transition-colors hover:!border-aou-6 hover:!text-t-primary'
+                        onClick={() => {
+                          guidInput.setInput(prompt);
+                          guidInput.handleTextareaFocus();
+                        }}
+                      >
+                        {prompt}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
         </div>
 
         <QuickActionButtons
@@ -554,6 +582,7 @@ const GuidPage: React.FC = () => {
           activeShadow={activeShadow}
         />
         <FeedbackReportModal visible={showFeedbackModal} onCancel={() => setShowFeedbackModal(false)} />
+        {settingsModal}
       </div>
     </ConfigProvider>
   );

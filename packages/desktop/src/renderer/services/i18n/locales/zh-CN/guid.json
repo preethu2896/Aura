@@ -13,5 +13,29 @@
     "specifyWorkspace": "选择项目文件夹",
     "searchPlaceholder": "搜索项目…",
     "noProject": "不使用项目"
+  },
+  "onboarding": {
+    "title": "欢迎使用 AURA",
+    "description": "请在设置中配置至少一个 LLM 模型服务商（如 Gemini、OpenAI 或 Claude）以开始对话。",
+    "button": "配置服务商"
+  },
+  "agentSetup": {
+    "title": "需要配置",
+    "subtitle": "此 Agent 在运行前需要进行额外配置。",
+    "depType": {
+      "binary": "缺少可执行文件",
+      "provider": "未配置服务商",
+      "env_var": "缺少环境变量",
+      "auth": "需要身份验证",
+      "platform": "不支持当前平台"
+    },
+    "installCommand": "安装命令：",
+    "copyCommand": "复制",
+    "verifyInstall": "验证安装",
+    "verifying": "检查中…",
+    "configureProvider": "配置服务商",
+    "openSettings": "打开设置",
+    "viewDocs": "查看文档 →",
+    "allResolved": "所有依赖已解决，现在可以发送消息。"
   }
 }

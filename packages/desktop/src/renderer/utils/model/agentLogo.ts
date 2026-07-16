@@ -20,6 +20,7 @@
 
 import { ipcBridge } from '@/common';
 import type { AssistantAvatar } from '@/renderer/utils/model/assistantAvatar';
+import brandLogo from '@/renderer/assets/logos/brand/app.png';
 import {
   isBackendRelativeAssetPath,
   isLikelyLocalFilePath,
@@ -120,6 +121,20 @@ export function resolveAgentLogo(
     isExtension?: boolean;
   }
 ): string | null {
+  const backendLower = opts.backend?.toLowerCase() || '';
+  const isBuiltinAura =
+    backendLower === 'aionrs' ||
+    backendLower === 'aionui-assistant' ||
+    opts.custom_agent_id?.toLowerCase().includes('632f31d2') ||
+    opts.custom_agent_id?.toLowerCase().includes('aionrs') ||
+    opts.icon?.toLowerCase().includes('632f31d2') ||
+    opts.icon?.toLowerCase().includes('aionrs') ||
+    opts.icon?.toLowerCase().includes('aionui-assistant');
+
+  if (isBuiltinAura) {
+    return brandLogo;
+  }
+
   if (opts.icon) return normalizeLogoUrl(opts.icon);
 
   if (opts.isExtension && opts.custom_agent_id) {
@@ -140,6 +155,20 @@ export function resolveAgentAvatar(
     isExtension?: boolean;
   }
 ): AssistantAvatar {
+  const backendLower = opts.backend?.toLowerCase() || '';
+  const isBuiltinAura =
+    backendLower === 'aionrs' ||
+    backendLower === 'aionui-assistant' ||
+    opts.custom_agent_id?.toLowerCase().includes('632f31d2') ||
+    opts.custom_agent_id?.toLowerCase().includes('aionrs') ||
+    opts.icon?.toLowerCase().includes('632f31d2') ||
+    opts.icon?.toLowerCase().includes('aionrs') ||
+    opts.icon?.toLowerCase().includes('aionui-assistant');
+
+  if (isBuiltinAura) {
+    return { kind: 'image', value: brandLogo };
+  }
+
   const explicitAvatar = resolveAssistantAvatar(opts.icon || undefined);
   if (explicitAvatar.kind !== 'fallback') return explicitAvatar;
 
